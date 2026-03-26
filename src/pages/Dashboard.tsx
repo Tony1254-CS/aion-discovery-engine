@@ -19,6 +19,7 @@ export default function Dashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const query = (location.state as any)?.query || "What is the effect of microplastics on coral reef microbiomes?";
+  const dataset = (location.state as any)?.dataset as { name: string; size: number; data: string; type: string } | null;
 
   const [stages, setStages] = useState<ResearchStage[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
