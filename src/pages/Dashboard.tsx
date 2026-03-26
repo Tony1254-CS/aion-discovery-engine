@@ -126,8 +126,11 @@ export default function Dashboard() {
                     <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
                   </div>
                 </motion.div>
+                {dataset.type !== "xlsx" && dataset.type !== "xls" && (
+                  <DatasetPreview dataset={dataset} />
+                )}
+              </>
               )}
-              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
