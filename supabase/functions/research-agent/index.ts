@@ -190,29 +190,43 @@ Respond in valid JSON:
 
     const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`;
 
-    const response = await fetch(googleUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
-        ],
-        generationConfig: {
-          maxOutputTokens: maxTokens,
-          temperature: 0.7,
-        },
-      }),
+    const requestBody = JSON.stringify({
+      contents: [
+        { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
+      ],
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        temperature: 0.7,
+      },
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again in a moment." }), {
+    // Retry with exponential backoff for rate limits
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      response = await fetch(googleUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: requestBody,
+      });
+
+      if (response.status !== 429) break;
+      
+      // Wait before retry: 3s, 6s, 12s
+      const waitMs = 3000 * Math.pow(2, attempt);
+      console.log(`Rate limited on attempt ${attempt + 1}, waiting ${waitMs}ms...`);
+      await response.text(); // consume body
+      await new Promise(r => setTimeout(r, waitMs));
+    }
+
+    if (!response || !response.ok) {
+      if (response?.status === 429) {
+        return new Response(JSON.stringify({ error: "Google AI rate limit reached. Please wait a minute and try again." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("Google AI error:", response.status, t);
-      throw new Error(`Google AI error: ${response.status}`);
+      const t = response ? await response.text() : "No response";
+      console.error("Google AI error:", response?.status, t);
+      throw new Error(`Google AI error: ${response?.status}`);
     }
 
     const data = await response.json();
