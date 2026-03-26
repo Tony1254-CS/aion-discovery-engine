@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, ArrowLeft, Sparkles } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, ArrowLeft, Home, Sparkles } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -129,15 +129,13 @@ export default function Dashboard() {
           </button>
           <div className="h-4 w-px bg-border" />
           <span className="text-sm font-medium text-foreground">Research Dashboard</span>
-          {!sidebarOpen && (
-            <button
-              onClick={() => navigate("/")}
-              className="ml-auto p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Home
-            </button>
-          )}
+          <button
+            onClick={() => navigate("/")}
+            className="ml-auto p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            title="Home"
+          >
+            <Home className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Content grid */}
