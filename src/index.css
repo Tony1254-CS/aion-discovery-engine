@@ -6,64 +6,64 @@
 
 @layer base {
   :root {
-    /* Apple-inspired warm dark palette */
-    --background: 225 8% 5%;
-    --foreground: 40 6% 90%;
+    /* ─── Apple Vision Pro inspired – deep blacks, luminous accents ─── */
+    --background: 228 12% 4%;
+    --foreground: 0 0% 96%;
 
-    --card: 225 8% 8%;
-    --card-foreground: 40 6% 90%;
+    --card: 228 10% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 225 8% 8%;
-    --popover-foreground: 40 6% 90%;
+    --popover: 228 10% 7%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 32 95% 62%;
-    --primary-foreground: 225 10% 5%;
+    --primary: 217 92% 68%;
+    --primary-foreground: 228 12% 4%;
 
-    --secondary: 225 6% 12%;
-    --secondary-foreground: 40 6% 75%;
+    --secondary: 228 8% 11%;
+    --secondary-foreground: 0 0% 70%;
 
-    --muted: 225 6% 11%;
-    --muted-foreground: 225 5% 48%;
+    --muted: 228 8% 10%;
+    --muted-foreground: 228 6% 50%;
 
-    --accent: 225 6% 13%;
-    --accent-foreground: 32 80% 70%;
+    --accent: 228 8% 13%;
+    --accent-foreground: 217 80% 72%;
 
-    --destructive: 0 65% 55%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 8% 14%;
-    --input: 225 8% 14%;
-    --ring: 32 95% 62%;
+    --border: 228 10% 14%;
+    --input: 228 10% 14%;
+    --ring: 217 92% 68%;
 
     --radius: 1rem;
 
-    --sidebar-background: 225 8% 6%;
-    --sidebar-foreground: 225 5% 65%;
-    --sidebar-primary: 32 95% 62%;
-    --sidebar-primary-foreground: 225 10% 5%;
-    --sidebar-accent: 225 6% 11%;
-    --sidebar-accent-foreground: 32 80% 70%;
-    --sidebar-border: 225 8% 13%;
-    --sidebar-ring: 32 95% 62%;
+    --sidebar-background: 228 10% 5%;
+    --sidebar-foreground: 228 6% 60%;
+    --sidebar-primary: 217 92% 68%;
+    --sidebar-primary-foreground: 228 12% 4%;
+    --sidebar-accent: 228 8% 11%;
+    --sidebar-accent-foreground: 217 80% 72%;
+    --sidebar-border: 228 10% 12%;
+    --sidebar-ring: 217 92% 68%;
 
-    /* AION Signature Tokens */
-    --aion-glow: 32 95% 62%;
-    --aion-surface: 225 8% 6%;
-    --aion-glass: 225 8% 9%;
-    --aion-glass-border: 225 8% 16%;
-    --aion-node-paper: 210 70% 60%;
-    --aion-node-concept: 160 55% 50%;
-    --aion-node-hypothesis: 32 90% 60%;
-    --aion-gradient-start: 32 95% 62%;
-    --aion-gradient-end: 16 85% 56%;
-    --aion-gradient-accent: 340 70% 58%;
-    --aion-shimmer: 32 50% 20%;
+    /* ─── AION Signature Tokens ─── */
+    --aion-glow: 217 92% 68%;
+    --aion-surface: 228 10% 5%;
+    --aion-glass: 228 10% 8%;
+    --aion-glass-border: 0 0% 100%;
+    --aion-node-paper: 210 75% 62%;
+    --aion-node-concept: 165 55% 52%;
+    --aion-node-hypothesis: 35 85% 60%;
+    --aion-gradient-start: 217 92% 68%;
+    --aion-gradient-end: 265 70% 65%;
+    --aion-gradient-accent: 330 65% 60%;
+    --aion-shimmer: 217 50% 25%;
 
-    /* Extra luxury tokens */
-    --aion-warm-white: 40 20% 96%;
-    --aion-gold: 42 92% 66%;
-    --aion-rose: 340 65% 60%;
-    --aion-violet: 265 55% 58%;
+    /* ─── Luxury accent spectrum ─── */
+    --aion-cyan: 192 85% 60%;
+    --aion-violet: 265 70% 65%;
+    --aion-rose: 330 65% 60%;
+    --aion-gold: 42 80% 62%;
   }
 }
 
@@ -76,84 +76,95 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
   ::selection {
-    background: hsl(var(--primary) / 0.25);
-    color: hsl(var(--foreground));
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(0 0% 100%);
   }
 }
 
 @layer components {
-  /* ===== PREMIUM GLASSMORPHISM ===== */
+  /* ══════ LIQUID GLASS SYSTEM ══════ */
   .glass-panel {
     @apply backdrop-blur-2xl rounded-2xl;
-    background: hsl(var(--aion-glass) / 0.5);
-    border: 1px solid hsl(var(--aion-glass-border) / 0.35);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--aion-glass) / 0.65) 0%,
+      hsl(var(--aion-glass) / 0.4) 100%
+    );
+    border: 1px solid hsl(var(--aion-glass-border) / 0.06);
     box-shadow:
-      0 4px 30px -4px hsl(0 0% 0% / 0.3),
-      0 1px 2px hsl(0 0% 0% / 0.15),
-      inset 0 1px 0 hsl(var(--aion-warm-white) / 0.03);
+      0 0 0 0.5px hsl(var(--aion-glass-border) / 0.04),
+      0 4px 24px -4px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(var(--aion-glass-border) / 0.06),
+      inset 0 0 20px hsl(var(--aion-glow) / 0.01);
   }
 
   .glass-panel-elevated {
     @apply backdrop-blur-3xl rounded-2xl;
-    background: hsl(var(--aion-glass) / 0.65);
-    border: 1px solid hsl(var(--aion-glass-border) / 0.3);
+    background: linear-gradient(
+      160deg,
+      hsl(var(--aion-glass) / 0.7) 0%,
+      hsl(228 10% 6% / 0.6) 100%
+    );
+    border: 1px solid hsl(var(--aion-glass-border) / 0.08);
     box-shadow:
-      0 8px 50px -8px hsl(var(--aion-glow) / 0.06),
-      0 2px 10px hsl(0 0% 0% / 0.2),
-      0 25px 70px -15px hsl(0 0% 0% / 0.35),
-      inset 0 1px 0 hsl(var(--aion-warm-white) / 0.04);
+      0 0 0 0.5px hsl(var(--aion-glass-border) / 0.04),
+      0 8px 40px -8px hsl(0 0% 0% / 0.5),
+      0 25px 70px -15px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(var(--aion-glass-border) / 0.08),
+      inset 0 0 40px hsl(var(--aion-glow) / 0.015);
   }
 
   .glass-panel-hero {
     @apply backdrop-blur-3xl rounded-3xl;
     background: linear-gradient(
-      145deg,
-      hsl(var(--aion-glass) / 0.6) 0%,
-      hsl(225 8% 7% / 0.5) 100%
+      155deg,
+      hsl(var(--aion-glass) / 0.7) 0%,
+      hsl(228 10% 5% / 0.55) 100%
     );
-    border: 1px solid hsl(var(--aion-glass-border) / 0.25);
+    border: 1px solid hsl(var(--aion-glass-border) / 0.07);
     box-shadow:
-      0 30px 80px -12px hsl(var(--aion-glow) / 0.08),
-      0 8px 30px hsl(0 0% 0% / 0.3),
-      inset 0 1px 0 hsl(var(--aion-warm-white) / 0.05),
-      inset 0 -1px 0 hsl(0 0% 0% / 0.15);
+      0 0 0 0.5px hsl(var(--aion-glass-border) / 0.04),
+      0 30px 80px -12px hsl(var(--aion-glow) / 0.06),
+      0 8px 30px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(var(--aion-glass-border) / 0.1),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.2),
+      inset 0 0 60px hsl(var(--aion-glow) / 0.02);
   }
 
-  /* ===== GRADIENT TEXT ===== */
+  /* ══════ GRADIENT TEXT – luminous spectrum ══════ */
   .aion-gradient-text {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(
       135deg,
-      hsl(var(--aion-gold)) 0%,
-      hsl(var(--aion-gradient-start)) 30%,
-      hsl(var(--aion-rose)) 70%,
-      hsl(var(--aion-violet)) 100%
+      hsl(var(--aion-cyan)) 0%,
+      hsl(var(--aion-glow)) 35%,
+      hsl(var(--aion-violet)) 70%,
+      hsl(var(--aion-rose)) 100%
     );
   }
 
-  /* ===== PREMIUM BUTTON ===== */
+  /* ══════ PREMIUM BUTTON ══════ */
   .aion-glow-button {
-    @apply text-primary-foreground px-8 py-4 rounded-2xl font-semibold text-lg
+    @apply text-white px-8 py-4 rounded-2xl font-semibold text-lg
       active:scale-[0.97] transition-all duration-500 ease-out relative overflow-hidden;
     background: linear-gradient(
       135deg,
-      hsl(var(--aion-gradient-start)) 0%,
-      hsl(var(--aion-gradient-end)) 50%,
-      hsl(var(--aion-rose) / 0.8) 100%
+      hsl(var(--aion-glow)) 0%,
+      hsl(var(--aion-violet)) 60%,
+      hsl(var(--aion-rose) / 0.85) 100%
     );
     box-shadow:
-      0 0 40px hsl(var(--aion-glow) / 0.15),
-      0 4px 20px hsl(var(--aion-glow) / 0.12),
-      inset 0 1px 0 hsl(var(--aion-warm-white) / 0.2);
+      0 0 40px hsl(var(--aion-glow) / 0.2),
+      0 4px 20px hsl(var(--aion-glow) / 0.15),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
   }
   .aion-glow-button:hover {
     box-shadow:
-      0 0 60px hsl(var(--aion-glow) / 0.25),
-      0 8px 40px hsl(var(--aion-glow) / 0.2),
-      inset 0 1px 0 hsl(var(--aion-warm-white) / 0.25);
-    filter: brightness(1.1);
+      0 0 60px hsl(var(--aion-glow) / 0.3),
+      0 8px 40px hsl(var(--aion-glow) / 0.25),
+      inset 0 1px 0 hsl(0 0% 100% / 0.25);
+    filter: brightness(1.12);
   }
   .aion-glow-button::after {
     content: '';
@@ -162,31 +173,31 @@
     background: linear-gradient(
       110deg,
       transparent 25%,
-      hsl(var(--aion-warm-white) / 0.15) 50%,
+      hsl(0 0% 100% / 0.15) 50%,
       transparent 75%
     );
     background-size: 250% 100%;
     animation: btnShimmer 4s ease-in-out infinite;
   }
 
-  /* ===== PULSE ===== */
+  /* ══════ PULSE ══════ */
   .aion-pulse {
     animation: aionPulse 4s ease-in-out infinite;
   }
 
-  /* ===== SHIMMER ===== */
+  /* ══════ SHIMMER ══════ */
   .aion-shimmer {
     background: linear-gradient(
       110deg,
       transparent 33%,
-      hsl(var(--aion-shimmer) / 0.12) 50%,
+      hsl(var(--aion-shimmer) / 0.1) 50%,
       transparent 67%
     );
     background-size: 300% 100%;
     animation: shimmer 4s ease-in-out infinite;
   }
 
-  /* ===== AURORA GLOW ===== */
+  /* ══════ AURORA GLOW ══════ */
   .aurora-glow {
     position: relative;
   }
@@ -194,27 +205,16 @@
     content: '';
     position: absolute;
     inset: -40%;
-    background: radial-gradient(
-      ellipse at 30% 50%,
-      hsl(var(--aion-gradient-start) / 0.04) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 70% 40%,
-      hsl(var(--aion-rose) / 0.03) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 50% 80%,
-      hsl(var(--aion-violet) / 0.025) 0%,
-      transparent 50%
-    );
-    animation: auroraMove 18s ease-in-out infinite;
+    background:
+      radial-gradient(ellipse at 25% 45%, hsl(var(--aion-glow) / 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 35%, hsl(var(--aion-violet) / 0.04) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 80%, hsl(var(--aion-rose) / 0.03) 0%, transparent 55%);
+    animation: auroraMove 20s ease-in-out infinite;
     pointer-events: none;
     z-index: -1;
   }
 
-  /* ===== MESH GRADIENT BG ===== */
+  /* ══════ MESH GRADIENT BG ══════ */
   .mesh-gradient-bg {
     position: relative;
     overflow: hidden;
@@ -227,74 +227,59 @@
     width: 200%;
     height: 200%;
     background:
-      radial-gradient(circle at 20% 25%, hsl(var(--aion-gradient-start) / 0.05) 0%, transparent 45%),
-      radial-gradient(circle at 80% 20%, hsl(var(--aion-rose) / 0.035) 0%, transparent 45%),
-      radial-gradient(circle at 50% 75%, hsl(var(--aion-violet) / 0.03) 0%, transparent 45%),
-      radial-gradient(circle at 70% 55%, hsl(var(--aion-gold) / 0.02) 0%, transparent 40%);
-    animation: meshRotate 40s linear infinite;
+      radial-gradient(circle at 15% 25%, hsl(var(--aion-glow) / 0.07) 0%, transparent 50%),
+      radial-gradient(circle at 85% 20%, hsl(var(--aion-violet) / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 75%, hsl(var(--aion-cyan) / 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 75% 55%, hsl(var(--aion-rose) / 0.03) 0%, transparent 45%);
+    animation: meshRotate 45s linear infinite;
     pointer-events: none;
     z-index: 0;
   }
 
-  /* ===== TIMELINE ===== */
-  .stage-line {
-    @apply w-0.5 bg-border;
-  }
-  .stage-line-active {
-    @apply w-0.5 bg-primary;
-  }
-
-  /* ===== FLOATING ANIMATION ===== */
-  .float-gentle {
-    animation: float 8s ease-in-out infinite;
-  }
-  .float-gentle-delayed {
-    animation: float 8s ease-in-out infinite 3s;
-  }
-
-  /* ===== GLOW RING ===== */
-  .glow-ring {
-    box-shadow:
-      0 0 0 1px hsl(var(--aion-glow) / 0.08),
-      0 0 24px hsl(var(--aion-glow) / 0.06);
-  }
-  .glow-ring-strong {
-    box-shadow:
-      0 0 0 1px hsl(var(--aion-glow) / 0.15),
-      0 0 40px hsl(var(--aion-glow) / 0.1),
-      0 0 80px hsl(var(--aion-glow) / 0.04);
-  }
-
-  /* ===== PREMIUM DIVIDER ===== */
+  /* ══════ PREMIUM DIVIDER ══════ */
   .premium-divider {
     height: 1px;
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsl(var(--aion-glow) / 0.15) 25%,
-      hsl(var(--aion-rose) / 0.1) 50%,
-      hsl(var(--aion-violet) / 0.08) 75%,
+      hsl(var(--aion-glow) / 0.2) 20%,
+      hsl(var(--aion-violet) / 0.15) 50%,
+      hsl(var(--aion-rose) / 0.1) 80%,
       transparent 100%
     );
   }
 
-  /* ===== SCROLLBAR ===== */
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
+  /* ══════ TIMELINE ══════ */
+  .stage-line { @apply w-0.5 bg-border; }
+  .stage-line-active { @apply w-0.5 bg-primary; }
+
+  /* ══════ FLOAT ══════ */
+  .float-gentle { animation: float 8s ease-in-out infinite; }
+  .float-gentle-delayed { animation: float 8s ease-in-out infinite 3s; }
+
+  /* ══════ GLOW RING ══════ */
+  .glow-ring {
+    box-shadow:
+      0 0 0 1px hsl(var(--aion-glow) / 0.1),
+      0 0 20px hsl(var(--aion-glow) / 0.06);
   }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
+  .glow-ring-strong {
+    box-shadow:
+      0 0 0 1px hsl(var(--aion-glow) / 0.18),
+      0 0 50px hsl(var(--aion-glow) / 0.12),
+      0 0 100px hsl(var(--aion-glow) / 0.04);
   }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 9999px;
-  }
+
+  /* ══════ SCROLLBAR ══════ */
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 9999px; }
 }
 
-/* ===== KEYFRAMES ===== */
+/* ══════ KEYFRAMES ══════ */
 @keyframes aionPulse {
-  0%, 100% { box-shadow: 0 0 25px hsl(var(--aion-glow) / 0.12), 0 4px 16px hsl(var(--aion-glow) / 0.08); }
-  50% { box-shadow: 0 0 50px hsl(var(--aion-glow) / 0.2), 0 6px 24px hsl(var(--aion-glow) / 0.15); }
+  0%, 100% { box-shadow: 0 0 30px hsl(var(--aion-glow) / 0.15), 0 4px 16px hsl(var(--aion-glow) / 0.1); }
+  50% { box-shadow: 0 0 55px hsl(var(--aion-glow) / 0.25), 0 6px 28px hsl(var(--aion-glow) / 0.18); }
 }
 
 @keyframes shimmer {
@@ -314,8 +299,8 @@
 
 @keyframes auroraMove {
   0%, 100% { transform: rotate(0deg) scale(1); }
-  33% { transform: rotate(2deg) scale(1.01); }
-  66% { transform: rotate(-1.5deg) scale(0.99); }
+  33% { transform: rotate(1.5deg) scale(1.01); }
+  66% { transform: rotate(-1deg) scale(0.99); }
 }
 
 @keyframes meshRotate {
@@ -331,9 +316,4 @@
 @keyframes borderGlow {
   0%, 100% { border-color: hsl(var(--aion-glow) / 0.1); }
   50% { border-color: hsl(var(--aion-glow) / 0.25); }
-}
-
-@keyframes softBreathe {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
 }
