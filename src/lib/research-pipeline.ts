@@ -42,8 +42,8 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
   const addLog = (text: string, type: LogEntry["type"] = "info") => {
     logs.push({ id: logId++, time: new Date().toLocaleTimeString(), text, type });
   };
-  const addNode = (id: string, label: string, type: GraphNode["type"]) => {
-    nodes.push({ id, label, type, x: rnd(-3, 3), y: rnd(-3, 3), z: rnd(-2, 2) });
+  const addNode = (id: string, label: string, type: GraphNode["type"], summary?: string) => {
+    nodes.push({ id, label, type, summary, x: rnd(-3, 3), y: rnd(-3, 3), z: rnd(-2, 2) });
   };
   const emit = (extra?: any) => onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: false, ...extra });
   const setStage = (id: string, status: ResearchStage["status"], detail?: string) => {
