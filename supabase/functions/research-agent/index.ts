@@ -138,7 +138,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "research-gaps":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 8192;
         systemPrompt = `You are a research gap analysis agent. Given a completed research paper and its context, identify 4-5 specific research gaps and provide actionable next-step suggestions for each. 
 
