@@ -14,6 +14,24 @@ export default function PaperView() {
   const state = location.state as any;
   const query = state?.query || "Scientific research question";
   const [paper, setPaper] = useState<any>(state?.paper);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const submitToLeaderboard = async () => {
+    if (!paper) return;
+    setSubmitting(true);
+    try {
+      await supabase.from("leaderboard").insert({
+        title: paper.title || "Untitled Research",
+        query,
+        abstract: paper.abstract || null,
+        novelty_score: state?.noveltyScore || 0,
+        paper_json: paper,
+      });
+      setSubmitted(true);
+    } catch (e) { console.error(e); }
+    finally { setSubmitting(false); }
+  };
 
   const title = paper?.title || "Research Paper";
   const abstract = paper?.abstract || "No abstract generated.";
