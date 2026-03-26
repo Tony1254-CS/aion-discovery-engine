@@ -171,7 +171,7 @@ Respond in valid JSON:
         break;
 
       case "research-proposal":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 4096;
         systemPrompt = `You are a research proposal writing agent. Given a research gap and a suggestion, write a concise 1-2 page research proposal with: (1) Introduction & Background (2 paragraphs), (2) Research Question & Hypothesis, (3) Proposed Methodology (2 paragraphs), (4) Expected Outcomes, (5) Suggested Timeline (6 months). Write in formal academic prose. Return ONLY valid JSON: {"proposal": "The full proposal text with paragraph breaks"}`;
         userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
