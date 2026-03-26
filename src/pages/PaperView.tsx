@@ -5,6 +5,7 @@ import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
+import PaperPDFExporter from "@/components/PaperPDFExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
 import ResearchGaps from "@/components/ResearchGaps";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,6 +119,7 @@ export default function PaperView() {
           </div>
           <div className="flex items-center gap-2">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
+            <PaperPDFExporter paper={paper} query={query} />
             <ReproducibilityExporter paper={paper} query={query} />
             <motion.button
               whileHover={{ scale: 1.03 }}
