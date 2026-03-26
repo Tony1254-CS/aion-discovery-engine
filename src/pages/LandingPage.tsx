@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
+import AionShowcase from "@/components/landing/AionShowcase";
 import { useNavigate } from "react-router-dom";
 
 const exampleQueries = [
@@ -32,8 +33,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-background mesh-gradient-bg">
+    <div className="relative min-h-screen flex flex-col items-center overflow-hidden bg-background mesh-gradient-bg">
       <ParticleBackground />
+
+      {/* Hero wrapper - full viewport */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center w-full">
 
       {/* Nav */}
       <motion.nav
@@ -199,6 +203,10 @@ export default function LandingPage() {
           ))}
         </motion.div>
       </div>
+      </div>{/* end hero wrapper */}
+
+      {/* Showcase Section */}
+      <AionShowcase />
 
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none z-[5]" />
