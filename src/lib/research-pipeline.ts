@@ -70,6 +70,7 @@ export async function runResearchPipeline(
     { id: "code", label: "Writing Code", status: "pending" },
     { id: "experiments", label: "Running Experiments", status: "pending" },
     { id: "paper", label: "Composing Paper", status: "pending" },
+    { id: "next-steps", label: "Analyzing Next Steps", status: "pending" },
   ];
   const logs: LogEntry[] = [];
   const nodes: GraphNode[] = [];
