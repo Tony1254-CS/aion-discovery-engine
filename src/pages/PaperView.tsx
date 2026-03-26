@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, Beaker } from "lucide-react";
+import PaperChat from "@/components/PaperChat";
 
 export default function PaperView() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as any;
   const query = state?.query || "Scientific research question";
-  const paper = state?.paper;
+  const [paper, setPaper] = useState<any>(state?.paper);
 
   // Fallback content if no AI paper
   const title = paper?.title || "Research Paper";
