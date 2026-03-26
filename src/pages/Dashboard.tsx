@@ -129,15 +129,13 @@ export default function Dashboard() {
           </button>
           <div className="h-4 w-px bg-border" />
           <span className="text-sm font-medium text-foreground">Research Dashboard</span>
-          {!sidebarOpen && (
-            <button
-              onClick={() => navigate("/")}
-              className="ml-auto p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Home
-            </button>
-          )}
+          <button
+            onClick={() => navigate("/")}
+            className="ml-auto p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            title="Home"
+          >
+            <Home className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Content grid */}
