@@ -6,6 +6,7 @@ import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
+import ResearchGaps from "@/components/ResearchGaps";
 import { supabase } from "@/integrations/supabase/client";
 
 const sectionVariants = {
