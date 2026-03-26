@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet, Zap, Swords, GitMerge } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -13,6 +13,9 @@ import NoveltyScore from "@/components/NoveltyScore";
 import AIAvatar from "@/components/AIAvatar";
 import HumanCheckpoints from "@/components/HumanCheckpoints";
 import DatasetPreview from "@/components/DatasetPreview";
+import HypothesisSimulation from "@/components/HypothesisSimulation";
+import DebateMode from "@/components/DebateMode";
+import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
