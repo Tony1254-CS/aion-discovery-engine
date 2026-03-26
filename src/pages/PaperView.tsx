@@ -44,18 +44,41 @@ export default function PaperView() {
   const title = paper?.title || "Research Paper";
   const abstract = paper?.abstract || "No abstract generated.";
   const introduction = paper?.introduction || "No introduction generated.";
+  const literatureReview = paper?.literatureReview || paper?.literature_review || "";
   const methods = paper?.methods || "No methods generated.";
   const results = paper?.results || "No results generated.";
   const discussion = paper?.discussion || "No discussion generated.";
+  const conclusion = paper?.conclusion || "";
   const references = paper?.references || [];
 
-  const sections = [
+  // Build sections dynamically
+  const sections: { title: string; content: string; showFigures?: boolean }[] = [
     { title: "Abstract", content: abstract },
     { title: "1. Introduction", content: introduction },
-    { title: "2. Methods", content: methods },
-    { title: "3. Results", content: results, extra: true },
-    { title: "4. Discussion", content: discussion },
   ];
+
+  if (literatureReview) {
+    sections.push({ title: "2. Literature Review", content: literatureReview });
+    sections.push({ title: "3. Methods", content: methods });
+    sections.push({ title: "4. Results", content: results, showFigures: true });
+    sections.push({ title: "5. Discussion", content: discussion });
+    if (conclusion) sections.push({ title: "6. Conclusion", content: conclusion });
+  } else {
+    sections.push({ title: "2. Methods", content: methods });
+    sections.push({ title: "3. Results", content: results, showFigures: true });
+    sections.push({ title: "4. Discussion", content: discussion });
+    if (conclusion) sections.push({ title: "5. Conclusion", content: conclusion });
+  }
+
+  const limIdx = sections.length;
+  const refIdx = limIdx + 1;
+
+  // Get figure context from paper state
+  const figureContext = {
+    xLabel: state?.stats?.testType?.includes("Correlation") ? "Independent Variable" : "Group",
+    yLabel: "Dependent Variable",
+    title: paper?.title || query,
+  };
 
   return (
     <div className="min-h-screen bg-background mesh-gradient-bg">
@@ -151,6 +174,7 @@ export default function PaperView() {
           <p className="text-xs text-muted-foreground/50 mb-8">Research query: "{query}"</p>
           <hr className="border-border/30 mb-8" />
 
+          {/* Dynamic sections */}
           {sections.map((sec, i) => (
             <motion.div
               key={sec.title}
@@ -161,36 +185,59 @@ export default function PaperView() {
             >
               <Section title={sec.title}>
                 {sec.content}
-                {sec.extra && (
+                {sec.showFigures && (
                   <div className="mt-8">
-                    <InteractiveFigures />
+                    <InteractiveFigures context={figureContext} />
                   </div>
                 )}
               </Section>
             </motion.div>
           ))}
 
-          <motion.div custom={5} initial="hidden" animate="visible" variants={sectionVariants}>
-            <Section title="5. Limitations">
+          {/* Limitations */}
+          <motion.div custom={limIdx} initial="hidden" animate="visible" variants={sectionVariants}>
+            <Section title={`${literatureReview ? 7 : 6}. Limitations`}>
               <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
                 <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
                 <ul className="list-disc list-inside space-y-1 pl-2">
-                  <li>Data was synthetically generated and may not reflect real-world distributions.</li>
-                  <li>Statistical results are illustrative and require validation with empirical datasets.</li>
-                  <li>The literature review was AI-assisted and may not capture all relevant publications.</li>
-                  <li>Competing hypotheses were tested against the same simulated dataset.</li>
+                  <li>Data was synthetically generated and may not reflect real-world distributions or population characteristics.</li>
+                  <li>Statistical results are illustrative and require validation with empirical datasets from controlled studies.</li>
+                  <li>The literature review was AI-assisted and may not capture all relevant publications, particularly recent preprints.</li>
+                  <li>Competing hypotheses were tested against the same simulated dataset, which may introduce correlated errors.</li>
+                  <li>Effect sizes and p-values should be interpreted with caution given the simulated nature of the data.</li>
+                  <li>External validity cannot be established without replication using real-world observational or experimental data.</li>
                 </ul>
               </div>
             </Section>
           </motion.div>
 
+          {/* References */}
           {references.length > 0 && (
-            <motion.div custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
+            <motion.div custom={refIdx} initial="hidden" animate="visible" variants={sectionVariants}>
               <Section title="References">
-                <div className="space-y-2">
-                  {references.map((ref: any, i: number) => (
-                    <p key={i} className="text-xs text-muted-foreground">{ref.text || ref}</p>
-                  ))}
+                <div className="space-y-3">
+                  {references.map((ref: any, i: number) => {
+                    const refText = ref.text || ref;
+                    const doiMatch = typeof refText === "string" ? refText.match(/(https?:\/\/doi\.org\/[^\s]+|10\.\d{4,}\/[^\s]+)/i) : null;
+                    return (
+                      <div key={i} className="flex gap-3 text-xs text-muted-foreground group">
+                        <span className="text-muted-foreground/40 shrink-0 tabular-nums font-mono">[{i + 1}]</span>
+                        <div>
+                          <span className="leading-relaxed">{refText}</span>
+                          {doiMatch && (
+                            <a
+                              href={doiMatch[0].startsWith("http") ? doiMatch[0] : `https://doi.org/${doiMatch[0]}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-primary/70 hover:text-primary hover:underline transition-colors"
+                            >
+                              [DOI]
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </Section>
             </motion.div>
@@ -205,12 +252,12 @@ export default function PaperView() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-8 group">
-      <h2 className="font-serif text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+    <section className="mb-10 group">
+      <h2 className="font-serif text-lg font-bold text-foreground mb-4 flex items-center gap-2">
         <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] opacity-0 group-hover:opacity-100 transition-opacity" />
         {title}
       </h2>
-      <div className="font-serif text-sm text-foreground/85 leading-relaxed whitespace-pre-line">{children}</div>
+      <div className="font-serif text-sm text-foreground/85 leading-[1.85] whitespace-pre-line">{children}</div>
     </section>
   );
 }
