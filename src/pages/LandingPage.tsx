@@ -22,14 +22,60 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } },
 };
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
+
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; data: string; type: string } | null>(null);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
+      return;
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "json", "xlsx", "xls", "tsv"].includes(ext || "")) {
+      setUploadError("Unsupported format. Use CSV, JSON, TSV, or Excel.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setUploadedFile({
+        name: file.name,
+        size: file.size,
+        data: result,
+        type: ext || "csv",
+      });
+    };
+
+    if (ext === "xlsx" || ext === "xls") {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleLaunch = () => {
     if (!query.trim()) return;
-    navigate("/dashboard", { state: { query: query.trim() } });
+    navigate("/dashboard", { state: { query: query.trim(), dataset: uploadedFile } });
   };
 
   return (
