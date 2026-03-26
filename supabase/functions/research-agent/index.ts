@@ -178,7 +178,7 @@ Respond in valid JSON:
         break;
 
       case "debate":
-        model = "google/gemini-3-flash-preview";
+        model = "gemini-2.0-flash";
         maxTokens = 2048;
         systemPrompt = context?.systemPrompt || "You are a scientific debater.";
         userPrompt = (context?.history || []).map((m: any) => m.content).join("\n\n") + `\n\nNow respond in your role. Research question: "${query}"`;
