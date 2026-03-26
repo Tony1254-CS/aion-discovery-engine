@@ -213,6 +213,13 @@ export default function PaperView() {
             </Section>
           </motion.div>
 
+          {/* Research Gaps & Next Steps */}
+          {researchGaps.length > 0 && (
+            <motion.div custom={limIdx + 1} initial="hidden" animate="visible" variants={sectionVariants}>
+              <ResearchGaps gaps={researchGaps} query={query} />
+            </motion.div>
+          )}
+
           {/* References */}
           {references.length > 0 && (
             <motion.div custom={refIdx} initial="hidden" animate="visible" variants={sectionVariants}>
