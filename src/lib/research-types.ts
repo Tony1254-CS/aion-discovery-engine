@@ -16,6 +16,7 @@ export interface GraphNode {
   id: string;
   label: string;
   type: "paper" | "concept" | "hypothesis";
+  summary?: string;
   x: number;
   y: number;
   z: number;
