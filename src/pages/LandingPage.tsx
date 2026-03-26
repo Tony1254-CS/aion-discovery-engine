@@ -210,7 +210,7 @@ export default function LandingPage() {
                     <Upload className="h-4 w-4 group-hover:text-primary transition-colors duration-300" />
                     <span className="hidden sm:inline">{uploadedFile ? "Change file" : "Upload dataset"}</span>
                   </button>
-                  <span className="text-[9px] text-muted-foreground/30 hidden sm:inline">CSV, JSON, TSV · Max 10MB</span>
+                  <span className="text-[9px] text-muted-foreground/30 hidden sm:inline">CSV, JSON, TSV · Max 100MB</span>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
