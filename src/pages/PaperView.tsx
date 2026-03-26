@@ -70,6 +70,8 @@ export default function PaperView() {
           )}
         </div>
       </motion.article>
+
+      <PaperChat paper={paper} query={query} onPaperUpdate={setPaper} />
     </div>
   );
 }
