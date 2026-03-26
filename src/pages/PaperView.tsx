@@ -51,6 +51,7 @@ export default function PaperView() {
   const discussion = paper?.discussion || "No discussion generated.";
   const conclusion = paper?.conclusion || "";
   const references = paper?.references || [];
+  const researchGaps = state?.researchGaps || [];
 
   // Build sections dynamically
   const sections: { title: string; content: string; showFigures?: boolean }[] = [
