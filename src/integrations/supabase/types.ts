@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          abstract: string | null
+          author_name: string | null
+          created_at: string
+          downvotes: number | null
+          id: string
+          novelty_score: number | null
+          paper_json: Json | null
+          query: string
+          title: string
+          upvotes: number | null
+        }
+        Insert: {
+          abstract?: string | null
+          author_name?: string | null
+          created_at?: string
+          downvotes?: number | null
+          id?: string
+          novelty_score?: number | null
+          paper_json?: Json | null
+          query: string
+          title: string
+          upvotes?: number | null
+        }
+        Update: {
+          abstract?: string | null
+          author_name?: string | null
+          created_at?: string
+          downvotes?: number | null
+          id?: string
+          novelty_score?: number | null
+          paper_json?: Json | null
+          query?: string
+          title?: string
+          upvotes?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
