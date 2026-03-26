@@ -45,6 +45,7 @@ type UpdateCb = (data: {
   noveltyScore?: number;
   closestWork?: string;
   noveltyDifference?: string;
+  researchGaps?: any[];
 }) => void;
 
 async function callAgent(stage: string, query: string, context?: any) {
