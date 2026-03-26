@@ -70,6 +70,14 @@ export default function PaperView() {
           <div className="flex items-center gap-2">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
             <ReproducibilityExporter paper={paper} query={query} />
+            <button
+              onClick={submitted ? () => navigate("/leaderboard") : submitToLeaderboard}
+              disabled={submitting || !paper}
+              className="aion-glow-button text-xs px-4 py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : submitted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Trophy className="h-3.5 w-3.5" />}
+              {submitting ? "Submitting…" : submitted ? "View Board" : "Submit"}
+            </button>
           </div>
         </div>
       </div>
