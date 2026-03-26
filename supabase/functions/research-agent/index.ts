@@ -73,6 +73,33 @@ serve(async (req) => {
         userPrompt = `Current paper: ${JSON.stringify(context?.paper)}\nUser request: "${query}"`;
         break;
 
+      case "peer-review":
+        systemPrompt = `You are a rigorous academic peer reviewer. Evaluate the given research paper critically. Assess methodology, clarity, novelty, reproducibility, and potential biases. Respond in valid JSON:
+{
+  "strengths": ["strength1", "strength2", "strength3"],
+  "weaknesses": ["weakness1", "weakness2", "weakness3"],
+  "suggestions": [{"text": "suggestion text", "section": "methods|results|discussion|introduction|abstract"}],
+  "overallScore": 7,
+  "verdict": "A one-sentence overall assessment"
+}`;
+        userPrompt = `Paper to review: ${JSON.stringify(context?.paper)}`;
+        break;
+
+      case "competing-hypotheses":
+        systemPrompt = `You are a hypothesis generation agent. Given research gaps and literature, generate exactly 3 competing hypotheses: a primary hypothesis, an alternative hypothesis, and a null hypothesis. For each, provide a title, description, predicted outcome, approach, and simulated statistical results. Respond in valid JSON:
+{
+  "hypotheses": [
+    {"type": "primary", "title": "...", "description": "...", "predictedOutcome": "...", "approach": "...", "pValue": 0.003, "effectSize": 0.82, "verdict": "supported"},
+    {"type": "alternative", "title": "...", "description": "...", "predictedOutcome": "...", "approach": "...", "pValue": 0.042, "effectSize": 0.45, "verdict": "weak"},
+    {"type": "null", "title": "...", "description": "...", "predictedOutcome": "...", "approach": "...", "pValue": 0.38, "effectSize": 0.08, "verdict": "rejected"}
+  ],
+  "noveltyScore": 0.75,
+  "closestWork": "Title of closest prior study",
+  "noveltyDifference": "How this work differs from closest prior study"
+}`; 
+        userPrompt = `Research gaps: ${JSON.stringify(context?.gaps)}\nLiterature: ${JSON.stringify(context?.synthesis)}\nQuestion: "${query}"`;
+        break;
+
       default:
         throw new Error(`Unknown stage: ${stage}`);
     }

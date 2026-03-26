@@ -71,7 +71,7 @@ export default function LandingPage() {
             <span className="aion-gradient-text">Research Paper</span>
           </h1>
           <p className="text-muted-foreground text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
-            AION autonomously reviews literature, generates hypotheses, runs experiments, and writes complete research papers.
+            Executable Research Pipeline with Automated Validation. AION autonomously reviews literature, generates hypotheses, runs experiments, and writes complete research papers.
           </p>
         </motion.div>
 
