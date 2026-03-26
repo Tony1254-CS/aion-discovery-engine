@@ -5,6 +5,7 @@ import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
+import PaperPDFExporter from "@/components/PaperPDFExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
 import ResearchGaps from "@/components/ResearchGaps";
 import { supabase } from "@/integrations/supabase/client";
