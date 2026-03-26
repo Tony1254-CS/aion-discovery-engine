@@ -148,46 +148,8 @@ export default function PaperView() {
         </div>
       </motion.div>
 
-      {/* Floating Advanced Tools Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.4, duration: 0.5, ease: [0.25, 0.4, 0, 1] }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
-      >
-        <div className="flex items-center gap-2 p-2 rounded-2xl bg-[hsl(var(--aion-surface)/0.85)] backdrop-blur-2xl border border-border/50 shadow-2xl shadow-black/20 mr-20">
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 hidden sm:block">Tools</span>
-          <div className="w-px h-6 bg-border/40 hidden sm:block" />
-          {toolItems.map((tool) => {
-            const Icon = tool.icon;
-            const isActive = activeTool === tool.id;
-            return (
-              <motion.button
-                key={tool.id}
-                whileHover={{ scale: 1.08, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveTool(isActive ? null : tool.id)}
-                className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 ${
-                  isActive
-                    ? `bg-gradient-to-r ${tool.color} text-white shadow-lg`
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{tool.label}</span>
-                {/* Pulse dot for new feature */}
-                {!isActive && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-primary to-[hsl(var(--aion-gradient-end))] animate-pulse shadow-sm shadow-primary/50" />
-                )}
-                {/* Tooltip on mobile */}
-                <span className="sm:hidden absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-foreground text-background text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  {tool.label}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.div>
+
+
 
       {/* Active Tool Panel */}
       <AnimatePresence>
