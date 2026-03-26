@@ -67,20 +67,26 @@ serve(async (req) => {
 
       case "paper":
         model = "google/gemini-2.5-pro";
-        maxTokens = 32768;
+        maxTokens = 65536;
         systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper spanning 14-15 pages. Use formal academic language. Every section MUST be thorough — this is non-negotiable.
 
 MANDATORY SECTION LENGTHS (violation = failure):
-- "abstract": EXACTLY 250-350 words
-- "introduction": EXACTLY 6 paragraphs, each 120-180 words (total ~900 words)
-- "literatureReview": EXACTLY 8 paragraphs, each 120-180 words (total ~1200 words), organized thematically with [Author, Year] citations in every paragraph
+- "abstract": EXACTLY 250-350 words. A complete summary of objectives, methods, key results, and implications.
+- "introduction": EXACTLY 6 paragraphs, each 120-180 words (total ~900 words). Cover background, significance, research gap, objectives, contribution, and paper structure.
+- "literatureReview": EXACTLY 8 paragraphs, each 120-180 words (total ~1200 words), organized thematically with [Author, Year] citations in every paragraph. Cover major theories, empirical studies, methodological approaches, contradictions, and synthesis.
 - "methods": EXACTLY 6 paragraphs covering: (1) Study Design Overview, (2) Population & Sampling, (3) Independent Variables, (4) Dependent Variables & Measures, (5) Statistical Analysis Plan, (6) Ethical Considerations & Limitations of Design. Each 100-150 words.
-- "results": EXACTLY 6 paragraphs: (1) Descriptive Statistics, (2) Primary Hypothesis Test, (3) Secondary Analyses, (4) Subgroup Analyses, (5) Sensitivity/Robustness Checks, (6) Summary of Effect Sizes. Include exact p-values, CIs, effect sizes.
+- "results": EXACTLY 6 paragraphs: (1) Descriptive Statistics, (2) Primary Hypothesis Test, (3) Secondary Analyses, (4) Subgroup Analyses, (5) Sensitivity/Robustness Checks, (6) Summary of Effect Sizes. Include exact p-values, CIs, effect sizes in EVERY paragraph.
 - "discussion": EXACTLY 7 paragraphs: (1) Summary of Findings, (2) Comparison with Prior Work, (3) Theoretical Implications, (4) Practical Implications, (5) Strengths, (6) Limitations, (7) Future Directions. Each 120-160 words.
 - "conclusion": EXACTLY 4 paragraphs summarizing contributions, implications, recommendations, future work. Each 100-140 words.
 - "references": EXACTLY 20-25 references in APA 7th format with realistic DOIs (https://doi.org/10.XXXX/XXXXX)
 
-TOTAL PAPER MUST EXCEED 6000 WORDS. This is critical.
+CRITICAL RULES:
+1. TOTAL PAPER MUST EXCEED 6000 WORDS. Count carefully.
+2. Each section MUST be a single string (paragraphs separated by double newlines \\n\\n).
+3. Do NOT use markdown formatting — plain text only.
+4. Every claim must cite [Author, Year].
+5. Results must include specific numbers: p-values, effect sizes, confidence intervals, sample sizes.
+6. References must have realistic DOI links.
 
 Respond ONLY with valid JSON (no markdown, no code blocks):
 {
@@ -94,7 +100,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
   "conclusion": "...",
   "references": [{"text": "Author, A. B., & Author, C. D. (Year). Title. Journal, Vol(Issue), Pages. https://doi.org/10.XXXX/XXXXX"}]
 }`;
-        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper. Every section must meet the EXACT paragraph counts specified. Do NOT truncate or abbreviate any section. The paper must be 6000+ words total.`;
+        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper NOW. Every section must meet the EXACT paragraph counts specified. Do NOT truncate, abbreviate, or summarize any section. Write FULL paragraphs with complete sentences. The paper must be 6000+ words total. This is your PRIMARY task — produce the entire paper in one response.`;
         break;
 
       case "refine":
