@@ -42,8 +42,8 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
   const addLog = (text: string, type: LogEntry["type"] = "info") => {
     logs.push({ id: logId++, time: new Date().toLocaleTimeString(), text, type });
   };
-  const addNode = (id: string, label: string, type: GraphNode["type"]) => {
-    nodes.push({ id, label, type, x: rnd(-3, 3), y: rnd(-3, 3), z: rnd(-2, 2) });
+  const addNode = (id: string, label: string, type: GraphNode["type"], summary?: string) => {
+    nodes.push({ id, label, type, summary, x: rnd(-3, 3), y: rnd(-3, 3), z: rnd(-2, 2) });
   };
   const emit = (extra?: any) => onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: false, ...extra });
   const setStage = (id: string, status: ResearchStage["status"], detail?: string) => {
@@ -64,7 +64,7 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
 
     const papers = litResult.papers || [];
     papers.forEach((p: any, i: number) => {
-      addNode(`paper-${i}`, p.title, "paper");
+      addNode(`paper-${i}`, p.title, "paper", p.summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
       addLog(`Found: "${p.title}" (${p.year})`, "info");
     });
@@ -104,7 +104,7 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
 
     (hypResult.hypotheses || []).forEach((h: any, i: number) => {
       hypotheses.push({ id: i + 1, title: h.title, description: h.description, predictedOutcome: h.predictedOutcome, approach: h.approach });
-      addNode(`hyp-${i}`, h.title, "hypothesis");
+      addNode(`hyp-${i}`, h.title, "hypothesis", h.description);
       edges.push({ from: `concept-${i % (litResult.concepts?.length || 1)}`, to: `hyp-${i}` });
       addLog(`Hypothesis ${i + 1}: ${h.title}`, "info");
     });
