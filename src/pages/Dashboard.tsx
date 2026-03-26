@@ -12,6 +12,7 @@ import FailureTransparency from "@/components/FailureTransparency";
 import NoveltyScore from "@/components/NoveltyScore";
 import AIAvatar from "@/components/AIAvatar";
 import HumanCheckpoints from "@/components/HumanCheckpoints";
+import DatasetPreview from "@/components/DatasetPreview";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
@@ -110,21 +111,28 @@ export default function Dashboard() {
 
               {/* Dataset indicator */}
               {dataset && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 }}
-                  className="mb-6 glass-panel p-3 flex items-center gap-3"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
-                    <FileSpreadsheet className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Dataset</p>
-                    <p className="text-xs text-foreground truncate">{dataset.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
-                  </div>
-                </motion.div>
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.12 }}
+                    className="mb-3 glass-panel p-3 flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                      <FileSpreadsheet className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Dataset</p>
+                      <p className="text-xs text-foreground truncate">{dataset.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
+                    </div>
+                  </motion.div>
+                  {dataset.type !== "xlsx" && dataset.type !== "xls" && (
+                    <div className="mb-6">
+                      <DatasetPreview dataset={dataset} />
+                    </div>
+                  )}
+                </>
               )}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
