@@ -15,7 +15,7 @@ serve(async (req) => {
 
     let systemPrompt = "";
     let userPrompt = "";
-    let model = "google/gemini-3-flash-preview";
+    let model = "gemini-2.0-flash";
     let maxTokens = 4096;
 
     switch (stage) {
