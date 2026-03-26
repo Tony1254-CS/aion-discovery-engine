@@ -119,6 +119,7 @@ export default function PaperView() {
           </div>
           <div className="flex items-center gap-2">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
+            <PaperPDFExporter paper={paper} query={query} />
             <ReproducibilityExporter paper={paper} query={query} />
             <motion.button
               whileHover={{ scale: 1.03 }}
