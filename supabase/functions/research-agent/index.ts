@@ -216,12 +216,11 @@ Respond in valid JSON:
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // Check if output was truncated
-    const finishReason = data.choices?.[0]?.finish_reason;
-    if (finishReason === "length" || finishReason === "MAX_TOKENS") {
-      console.warn(`Output truncated for stage ${stage} - finish_reason: ${finishReason}`);
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason === "MAX_TOKENS") {
+      console.warn(`Output truncated for stage ${stage} - finishReason: ${finishReason}`);
     }
 
     // Parse JSON from response (handle markdown code blocks)
