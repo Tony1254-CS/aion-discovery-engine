@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet, Zap, Swords, GitMerge } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -13,6 +13,9 @@ import NoveltyScore from "@/components/NoveltyScore";
 import AIAvatar from "@/components/AIAvatar";
 import HumanCheckpoints from "@/components/HumanCheckpoints";
 import DatasetPreview from "@/components/DatasetPreview";
+import HypothesisSimulation from "@/components/HypothesisSimulation";
+import DebateMode from "@/components/DebateMode";
+import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
@@ -40,6 +43,9 @@ export default function Dashboard() {
   const [selectedCompeting, setSelectedCompeting] = useState<number | undefined>();
   const [autoMode, setAutoMode] = useState(true);
   const [researchGaps, setResearchGaps] = useState<any[]>([]);
+  const [showSimulation, setShowSimulation] = useState(false);
+  const [showDebate, setShowDebate] = useState(false);
+  const [showMetaAnalysis, setShowMetaAnalysis] = useState(false);
   const abortRef = useRef(new AbortController());
 
   const currentStage = stages.find(s => s.status === "active")?.id;
@@ -281,8 +287,26 @@ export default function Dashboard() {
 
         {/* Content grid */}
         <div className="flex-1 p-4 grid grid-rows-[1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-4 min-h-0">
-          <div className="min-h-[300px] lg:row-span-1">
+          <div className="min-h-[300px] lg:row-span-1 flex flex-col gap-4">
             <KnowledgeGraph nodes={nodes} edges={edges} />
+
+            {/* Advanced Tool Panels */}
+            <AnimatePresence>
+              {showSimulation && (
+                <HypothesisSimulation
+                  hypothesis={competingHyps[0] ? { title: competingHyps[0].title, effectSize: competingHyps[0].effectSize } : undefined}
+                  onClose={() => setShowSimulation(false)}
+                />
+              )}
+              {showDebate && (
+                <DebateMode
+                  hypothesis={competingHyps[0] ? { title: competingHyps[0].title, description: competingHyps[0].description } : undefined}
+                  query={query}
+                  onClose={() => setShowDebate(false)}
+                />
+              )}
+              {showMetaAnalysis && <MetaAnalysisBuilder />}
+            </AnimatePresence>
           </div>
           <div className="lg:row-span-2 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin space-y-4">
             {competingHyps.length > 0 ? (
@@ -290,6 +314,37 @@ export default function Dashboard() {
             ) : (
               <HypothesisCards hypotheses={hypotheses} selected={selectedHyp} onSelect={setSelectedHyp} />
             )}
+
+            {/* Tool buttons */}
+            {competingHyps.length > 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setShowSimulation(!showSimulation)}
+                  className={`text-[10px] px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                    showSimulation ? "bg-primary text-primary-foreground" : "glass-panel text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Zap className="h-3 w-3" /> Power Simulation
+                </button>
+                <button
+                  onClick={() => setShowDebate(!showDebate)}
+                  className={`text-[10px] px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                    showDebate ? "bg-primary text-primary-foreground" : "glass-panel text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Swords className="h-3 w-3" /> Debate Mode
+                </button>
+                <button
+                  onClick={() => setShowMetaAnalysis(!showMetaAnalysis)}
+                  className={`text-[10px] px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                    showMetaAnalysis ? "bg-primary text-primary-foreground" : "glass-panel text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <GitMerge className="h-3 w-3" /> Meta-Analysis
+                </button>
+              </motion.div>
+            )}
+
             {stats && <StatisticalOutput stats={stats} />}
           </div>
           <div className="h-[200px] lg:h-[220px]">
