@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -10,6 +10,8 @@ import CompetingHypotheses from "@/components/CompetingHypotheses";
 import StatisticalOutput from "@/components/StatisticalOutput";
 import FailureTransparency from "@/components/FailureTransparency";
 import NoveltyScore from "@/components/NoveltyScore";
+import AIAvatar from "@/components/AIAvatar";
+import HumanCheckpoints from "@/components/HumanCheckpoints";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
@@ -34,7 +36,12 @@ export default function Dashboard() {
   const [closestWork, setClosestWork] = useState("");
   const [noveltyDiff, setNoveltyDiff] = useState("");
   const [selectedCompeting, setSelectedCompeting] = useState<number | undefined>();
+  const [autoMode, setAutoMode] = useState(true);
   const abortRef = useRef(new AbortController());
+
+  // Track current active stage for avatar
+  const currentStage = stages.find(s => s.status === "active")?.id;
+  const latestLog = logs.length > 0 ? logs[logs.length - 1].text : undefined;
 
   useEffect(() => {
     abortRef.current = new AbortController();
@@ -111,6 +118,18 @@ export default function Dashboard() {
 
               <Timeline stages={stages} />
 
+              {/* Human-in-the-Loop Checkpoints */}
+              <div className="mt-4">
+                <HumanCheckpoints
+                  autoMode={autoMode}
+                  onToggleAuto={setAutoMode}
+                  competingHyps={competingHyps}
+                  onSelectHypothesis={setSelectedCompeting}
+                  selectedHyp={selectedCompeting}
+                  currentStage={currentStage}
+                />
+              </div>
+
               {/* Novelty Score */}
               {noveltyScore > 0 && (
                 <div className="mt-4">
@@ -127,22 +146,31 @@ export default function Dashboard() {
 
               <div className="flex-1" />
 
-              {/* View Paper Button */}
-              <AnimatePresence>
-                {paperReady && (
-                  <motion.button
-                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 15 }}
-                    onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff } })}
-                    className="aion-glow-button w-full flex items-center justify-center gap-2.5 text-sm mt-4 px-4 py-3.5"
-                  >
-                    <FileText className="h-4 w-4" />
-                    View Research Paper
-                    <Sparkles className="h-3.5 w-3.5 opacity-70" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              {/* View Paper + Leaderboard buttons */}
+              <div className="space-y-2 mt-4">
+                <AnimatePresence>
+                  {paperReady && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15 }}
+                      onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff } })}
+                      className="aion-glow-button w-full flex items-center justify-center gap-2.5 text-sm px-4 py-3.5"
+                    >
+                      <FileText className="h-4 w-4" />
+                      View Research Paper
+                      <Sparkles className="h-3.5 w-3.5 opacity-70" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                <button
+                  onClick={() => navigate("/leaderboard")}
+                  className="w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Trophy className="h-3.5 w-3.5" />
+                  Challenge Leaderboard
+                </button>
+              </div>
             </div>
           </motion.aside>
         )}
@@ -187,6 +215,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Avatar */}
+      <AIAvatar currentStage={currentStage} latestLog={latestLog} />
     </div>
   );
 }

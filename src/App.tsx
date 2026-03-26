@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import PaperView from "./pages/PaperView";
+import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/paper" element={<PaperView />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

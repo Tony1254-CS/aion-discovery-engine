@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2 } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PaperView() {
   const navigate = useNavigate();
@@ -13,6 +14,24 @@ export default function PaperView() {
   const state = location.state as any;
   const query = state?.query || "Scientific research question";
   const [paper, setPaper] = useState<any>(state?.paper);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const submitToLeaderboard = async () => {
+    if (!paper) return;
+    setSubmitting(true);
+    try {
+      await supabase.from("leaderboard").insert({
+        title: paper.title || "Untitled Research",
+        query,
+        abstract: paper.abstract || null,
+        novelty_score: state?.noveltyScore || 0,
+        paper_json: paper,
+      });
+      setSubmitted(true);
+    } catch (e) { console.error(e); }
+    finally { setSubmitting(false); }
+  };
 
   const title = paper?.title || "Research Paper";
   const abstract = paper?.abstract || "No abstract generated.";
@@ -51,6 +70,14 @@ export default function PaperView() {
           <div className="flex items-center gap-2">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
             <ReproducibilityExporter paper={paper} query={query} />
+            <button
+              onClick={submitted ? () => navigate("/leaderboard") : submitToLeaderboard}
+              disabled={submitting || !paper}
+              className="aion-glow-button text-xs px-4 py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : submitted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Trophy className="h-3.5 w-3.5" />}
+              {submitting ? "Submitting…" : submitted ? "View Board" : "Submit"}
+            </button>
           </div>
         </div>
       </div>
