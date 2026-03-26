@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, BellRing, Plus, X, ExternalLink, Star, TrendingUp, BookOpen, Search, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { Bell, BellRing, Plus, X, ExternalLink, Star, TrendingUp, BookOpen, Search, Loader2, CheckCircle2, Sparkles, RefreshCw, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AlertPaper {
   id: string;
@@ -21,49 +22,6 @@ interface Subscription {
   paperCount: number;
 }
 
-const MOCK_PAPERS: AlertPaper[] = [
-  {
-    id: "1",
-    title: "Microplastic-induced dysbiosis in coral-associated bacterial communities",
-    authors: "Chen et al.",
-    abstract: "We demonstrate that microplastic exposure significantly alters the composition of coral-associated microbial communities, with a notable increase in pathogenic Vibrio species and decrease in beneficial Endozoicomonas...",
-    source: "Nature Microbiology",
-    relevance: 96,
-    date: "2026-03-24",
-    url: "#",
-  },
-  {
-    id: "2",
-    title: "Nanoplastic transport mechanisms in marine reef ecosystems",
-    authors: "Park & Williams",
-    abstract: "This study reveals novel pathways through which nanoplastics accumulate in reef structures, demonstrating bioaccumulation factors 10-100x higher than previously estimated...",
-    source: "Science",
-    relevance: 89,
-    date: "2026-03-22",
-    url: "#",
-  },
-  {
-    id: "3",
-    title: "Metagenomic analysis of pollutant-exposed coral holobiont",
-    authors: "Rodriguez et al.",
-    abstract: "Through shotgun metagenomics of coral holobionts exposed to environmental pollutants, we identified functional gene shifts in nitrogen cycling and stress response pathways...",
-    source: "ISME Journal",
-    relevance: 82,
-    date: "2026-03-20",
-    url: "#",
-  },
-  {
-    id: "4",
-    title: "Resilience of deep-water coral microbiomes to anthropogenic stressors",
-    authors: "Thompson et al.",
-    abstract: "Deep-water corals exhibit markedly different microbiome stability compared to shallow-water species when exposed to microplastic contamination...",
-    source: "PNAS",
-    relevance: 74,
-    date: "2026-03-18",
-    url: "#",
-  },
-];
-
 interface LiteratureMonitorProps {
   query?: string;
   onAddToProject?: (paper: AlertPaper) => void;
@@ -75,40 +33,79 @@ export default function LiteratureMonitor({ query, onAddToProject }: LiteratureM
   const [papers, setPapers] = useState<AlertPaper[]>([]);
   const [newTopic, setNewTopic] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [addedPapers, setAddedPapers] = useState<Set<string>>(new Set());
   const [showSubscribeForm, setShowSubscribeForm] = useState(false);
 
-  // Auto-subscribe to the current query topic
+  const fetchPapers = useCallback(async (searchQuery: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("literature-search", {
+        body: { query: searchQuery },
+      });
+
+      if (fnError) throw new Error(fnError.message);
+      if (data?.error) throw new Error(data.error);
+
+      const fetchedPapers: AlertPaper[] = data?.papers || [];
+      setPapers(fetchedPapers);
+      return fetchedPapers.length;
+    } catch (err) {
+      console.error("Literature search error:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch papers");
+      return 0;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Auto-subscribe and fetch when query changes
   useEffect(() => {
     if (query && subscriptions.length === 0) {
       const keywords = query.split(/\s+/).filter(w => w.length > 3).slice(0, 5);
-      setSubscriptions([{
+      const sub: Subscription = {
         id: "auto-1",
         topic: query.length > 60 ? query.slice(0, 57) + "..." : query,
         keywords,
         createdAt: new Date().toISOString(),
-        paperCount: MOCK_PAPERS.length,
-      }]);
-      setPapers(MOCK_PAPERS);
+        paperCount: 0,
+      };
+      setSubscriptions([sub]);
+
+      fetchPapers(query).then(count => {
+        setSubscriptions(prev => prev.map(s => s.id === "auto-1" ? { ...s, paperCount: count } : s));
+      });
     }
   }, [query]);
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!newTopic.trim()) return;
     setIsSearching(true);
-    setTimeout(() => {
-      const keywords = newTopic.split(/\s+/).filter(w => w.length > 3).slice(0, 5);
-      setSubscriptions(prev => [...prev, {
-        id: `sub-${Date.now()}`,
-        topic: newTopic.trim(),
-        keywords,
-        createdAt: new Date().toISOString(),
-        paperCount: Math.floor(Math.random() * 8) + 2,
-      }]);
-      setNewTopic("");
-      setShowSubscribeForm(false);
-      setIsSearching(false);
-    }, 1500);
+    const keywords = newTopic.split(/\s+/).filter(w => w.length > 3).slice(0, 5);
+    const subId = `sub-${Date.now()}`;
+
+    setSubscriptions(prev => [...prev, {
+      id: subId,
+      topic: newTopic.trim(),
+      keywords,
+      createdAt: new Date().toISOString(),
+      paperCount: 0,
+    }]);
+
+    const count = await fetchPapers(newTopic.trim());
+    setSubscriptions(prev => prev.map(s => s.id === subId ? { ...s, paperCount: count } : s));
+    setNewTopic("");
+    setShowSubscribeForm(false);
+    setIsSearching(false);
+  };
+
+  const handleRefresh = () => {
+    if (subscriptions.length > 0) {
+      const allTopics = subscriptions.map(s => s.topic).join(" ");
+      fetchPapers(allTopics);
+    }
   };
 
   const handleUnsubscribe = (id: string) => {
@@ -176,15 +173,25 @@ export default function LiteratureMonitor({ query, onAddToProject }: LiteratureM
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">Literature Monitor</h2>
-                    <p className="text-[10px] text-muted-foreground">New papers matching your interests</p>
+                    <p className="text-[10px] text-muted-foreground">Live results from ArXiv & PubMed</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-40"
+                    title="Refresh papers"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -251,7 +258,7 @@ export default function LiteratureMonitor({ query, onAddToProject }: LiteratureM
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] text-muted-foreground">{sub.paperCount} papers found</span>
                             <span className="text-[10px] text-muted-foreground/40">·</span>
-                            <span className="text-[10px] text-muted-foreground/60">Daily alerts</span>
+                            <span className="text-[10px] text-muted-foreground/60">Live search</span>
                           </div>
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {sub.keywords.slice(0, 3).map((kw, i) => (
@@ -272,78 +279,106 @@ export default function LiteratureMonitor({ query, onAddToProject }: LiteratureM
                   </div>
                 </div>
 
+                {/* Error state */}
+                {error && (
+                  <div className="mx-5 mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-destructive font-medium">Search failed</p>
+                      <p className="text-[10px] text-destructive/70 mt-0.5">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Loading state */}
+                {isLoading && (
+                  <div className="p-8 flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <p className="text-xs text-muted-foreground">Searching ArXiv & PubMed...</p>
+                  </div>
+                )}
+
                 {/* New Papers */}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">
-                      New Papers & Alerts
-                    </p>
-                  </div>
+                {!isLoading && (
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">
+                        {papers.length > 0 ? `${papers.length} Papers Found` : "No Papers Yet"}
+                      </p>
+                    </div>
 
-                  <div className="space-y-3">
-                    {papers.map((paper, i) => (
-                      <motion.div
-                        key={paper.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        className="glass-panel p-4 group hover:border-primary/20 transition-all duration-300"
-                      >
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <h3 className="text-xs font-semibold text-foreground leading-snug flex-1">
-                            {paper.title}
-                          </h3>
-                          <div className={`shrink-0 px-2 py-0.5 rounded-md border text-[10px] font-bold ${getRelevanceBg(paper.relevance)} ${getRelevanceColor(paper.relevance)}`}>
-                            {paper.relevance}%
+                    {papers.length === 0 && !error && (
+                      <div className="text-center py-8">
+                        <BookOpen className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-xs text-muted-foreground/50">Subscribe to a topic to discover papers</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      {papers.map((paper, i) => (
+                        <motion.div
+                          key={paper.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="glass-panel p-4 group hover:border-primary/20 transition-all duration-300"
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <h3 className="text-xs font-semibold text-foreground leading-snug flex-1">
+                              {paper.title}
+                            </h3>
+                            <div className={`shrink-0 px-2 py-0.5 rounded-md border text-[10px] font-bold ${getRelevanceBg(paper.relevance)} ${getRelevanceColor(paper.relevance)}`}>
+                              {paper.relevance}%
+                            </div>
                           </div>
-                        </div>
 
-                        <p className="text-[10px] text-muted-foreground mb-2">
-                          {paper.authors} · <span className="text-muted-foreground/60">{paper.source}</span> · {paper.date}
-                        </p>
+                          <p className="text-[10px] text-muted-foreground mb-2">
+                            {paper.authors} · <span className="text-muted-foreground/60">{paper.source}</span> · {paper.date}
+                          </p>
 
-                        <p className="text-[11px] text-muted-foreground/80 leading-relaxed mb-3 line-clamp-2">
-                          {paper.abstract}
-                        </p>
+                          <p className="text-[11px] text-muted-foreground/80 leading-relaxed mb-3 line-clamp-2">
+                            {paper.abstract}
+                          </p>
 
-                        <div className="flex items-center gap-2">
-                          {addedPapers.has(paper.id) ? (
-                            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-[hsl(var(--aion-cyan))]/10 text-[hsl(var(--aion-cyan))] flex items-center gap-1.5 font-medium">
-                              <CheckCircle2 className="h-3 w-3" /> Added to Project
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleAddToProject(paper)}
-                              className="text-[10px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 font-medium"
+                          <div className="flex items-center gap-2">
+                            {addedPapers.has(paper.id) ? (
+                              <span className="text-[10px] px-2.5 py-1 rounded-lg bg-[hsl(var(--aion-cyan))]/10 text-[hsl(var(--aion-cyan))] flex items-center gap-1.5 font-medium">
+                                <CheckCircle2 className="h-3 w-3" /> Added to Project
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleAddToProject(paper)}
+                                className="text-[10px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 font-medium"
+                              >
+                                <Plus className="h-3 w-3" /> Add to Project
+                              </button>
+                            )}
+                            <a
+                              href={paper.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] px-2.5 py-1 rounded-lg glass-panel text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
                             >
-                              <Plus className="h-3 w-3" /> Add to Project
-                            </button>
-                          )}
-                          <a
-                            href={paper.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[10px] px-2.5 py-1 rounded-lg glass-panel text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-                          >
-                            <ExternalLink className="h-3 w-3" /> View Paper
-                          </a>
-                          <div className="flex-1" />
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
-                            <TrendingUp className="h-3 w-3" />
-                            <span>Relevance</span>
+                              <ExternalLink className="h-3 w-3" /> View Paper
+                            </a>
+                            <div className="flex-1" />
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+                              <TrendingUp className="h-3 w-3" />
+                              <span>Relevance</span>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Footer */}
               <div className="p-4 border-t border-border/30 bg-[hsl(var(--aion-surface))]">
                 <p className="text-[10px] text-muted-foreground/50 text-center">
-                  Monitoring ArXiv, PubMed, Semantic Scholar · Updated daily
+                  Live results from ArXiv & PubMed APIs · Click refresh to update
                 </p>
               </div>
             </motion.div>
