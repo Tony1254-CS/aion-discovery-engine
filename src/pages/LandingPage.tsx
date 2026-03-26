@@ -39,7 +39,7 @@ export default function LandingPage() {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 100MB.`);
       return;
     }
 
