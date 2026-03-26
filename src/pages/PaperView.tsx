@@ -213,10 +213,17 @@ export default function PaperView() {
             </Section>
           </motion.div>
 
-          {/* Research Gaps & Next Steps */}
+          {/* Research Gaps & Next Steps - shown AFTER the full paper */}
           {researchGaps.length > 0 && (
             <motion.div custom={limIdx + 1} initial="hidden" animate="visible" variants={sectionVariants}>
-              <ResearchGaps gaps={researchGaps} query={query} />
+              <div className="mt-6 pt-8 border-t border-border/30">
+                <h2 className="font-serif text-lg font-bold text-foreground mb-2 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Research Gaps & Next Steps
+                </h2>
+                <p className="text-xs text-muted-foreground mb-6">Based on the findings above, the following gaps and future research directions have been identified.</p>
+                <ResearchGaps gaps={researchGaps} query={query} />
+              </div>
             </motion.div>
           )}
 
