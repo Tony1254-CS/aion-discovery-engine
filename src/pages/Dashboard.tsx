@@ -12,6 +12,7 @@ import FailureTransparency from "@/components/FailureTransparency";
 import NoveltyScore from "@/components/NoveltyScore";
 import AIAvatar from "@/components/AIAvatar";
 import HumanCheckpoints from "@/components/HumanCheckpoints";
+import DatasetPreview from "@/components/DatasetPreview";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
