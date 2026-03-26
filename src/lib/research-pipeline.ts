@@ -276,10 +276,10 @@ export async function runResearchPipeline(
 
     // Stage 6: Paper
     setStage("paper", "active");
-    addLog("Writing complete research paper with limitations…", "info");
+    addLog("Writing complete research paper (this may take 1-2 minutes)…", "info");
     emit();
 
-    const paperResult = await callAgent("paper", query, {
+    let paperResult = await callAgent("paper", query, {
       ...researchContext,
       competingHypotheses: competingHyps,
       noveltyScore,
@@ -287,6 +287,29 @@ export async function runResearchPipeline(
     });
     if (signal.aborted) return;
 
+    // Validate paper completeness - check all required sections exist and have content
+    const requiredSections = ["title", "abstract", "introduction", "literatureReview", "methods", "results", "discussion", "conclusion", "references"];
+    const missingSections = requiredSections.filter(s => !paperResult[s] || (typeof paperResult[s] === "string" && paperResult[s].length < 50));
+    
+    if (missingSections.length > 0) {
+      addLog(`Paper incomplete (missing: ${missingSections.join(", ")}). Retrying…`, "warning");
+      emit();
+      // Retry once
+      const retryResult = await callAgent("paper", query, {
+        ...researchContext,
+        competingHypotheses: competingHyps,
+        noveltyScore,
+        warnings,
+      });
+      if (signal.aborted) return;
+      if (retryResult.title) paperResult = retryResult;
+    }
+
+    // Log paper stats
+    const paperWordCount = requiredSections
+      .filter(s => typeof paperResult[s] === "string")
+      .reduce((acc, s) => acc + paperResult[s].split(/\s+/).length, 0);
+    addLog(`Paper generated: ${paperWordCount.toLocaleString()} words, ${(paperResult.references || []).length} references`, "success");
     addLog("Research paper complete! 🎉", "success");
     setStage("paper", "done");
     emit({ paperReady: true, paper: paperResult });
