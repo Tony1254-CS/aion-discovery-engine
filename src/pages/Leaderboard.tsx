@@ -19,9 +19,9 @@ interface LeaderboardEntry {
 }
 
 const rankIcons = [
-  { icon: Crown, bg: "bg-amber-500/15", text: "text-amber-500", ring: "shadow-[0_0_20px_hsl(45_90%_50%/0.15)]" },
-  { icon: Medal, bg: "bg-slate-400/15", text: "text-slate-400", ring: "" },
-  { icon: Medal, bg: "bg-orange-600/15", text: "text-orange-600", ring: "" },
+  { icon: Crown, bg: "bg-primary/10", text: "text-primary", ring: "shadow-[0_0_25px_hsl(32_95%_62%/0.1)]" },
+  { icon: Medal, bg: "bg-muted-foreground/10", text: "text-muted-foreground", ring: "" },
+  { icon: Medal, bg: "bg-aion-rose/10", text: "text-aion-rose", ring: "" },
 ];
 
 export default function Leaderboard() {
