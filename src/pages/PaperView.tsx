@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
 import { supabase } from "@/integrations/supabase/client";
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: 0.1 + i * 0.06, duration: 0.5, ease: [0.25, 0.4, 0, 1] },
+  }),
+};
 
 export default function PaperView() {
   const navigate = useNavigate();
@@ -41,103 +49,151 @@ export default function PaperView() {
   const discussion = paper?.discussion || "No discussion generated.";
   const references = paper?.references || [];
 
+  const sections = [
+    { title: "Abstract", content: abstract },
+    { title: "1. Introduction", content: introduction },
+    { title: "2. Methods", content: methods },
+    { title: "3. Results", content: results, extra: true },
+    { title: "4. Discussion", content: discussion },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+    <div className="min-h-screen bg-background mesh-gradient-bg">
+      {/* Sticky header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 bg-[hsl(var(--aion-surface)/0.75)] backdrop-blur-2xl border-b border-border/40"
+      >
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/")}
               className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               title="Home"
             >
               <Home className="h-4 w-4" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ x: -2 }}
               onClick={() => navigate("/dashboard", { state: { query } })}
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
             >
               <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
               Dashboard
-            </button>
+            </motion.button>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
               <Beaker className="h-3 w-3 text-primary-foreground" />
             </div>
-            <span className="text-sm font-bold text-foreground tracking-tight">AION</span>
+            <span className="text-sm font-bold text-foreground tracking-tight font-display">AION</span>
           </div>
           <div className="flex items-center gap-2">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
             <ReproducibilityExporter paper={paper} query={query} />
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
               onClick={submitted ? () => navigate("/leaderboard") : submitToLeaderboard}
               disabled={submitting || !paper}
               className="aion-glow-button text-xs px-4 py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md disabled:opacity-50"
             >
               {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : submitted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Trophy className="h-3.5 w-3.5" />}
               {submitting ? "Submitting…" : submitted ? "View Board" : "Submit"}
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <motion.article
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto px-4 py-12"
+        className="max-w-4xl mx-auto px-4 py-12 relative z-10"
       >
-        <div className="glass-panel-elevated p-8 sm:p-12">
+        <div className="glass-panel-hero p-8 sm:p-12">
           {/* Badges */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center gap-2 mb-5"
+          >
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary glow-ring">
               <Award className="h-3 w-3" />
               Reproducible
             </span>
-            <span className="inline-flex text-[10px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600">
+              <Sparkles className="h-3 w-3" />
               AI-Generated
             </span>
-          </div>
+          </motion.div>
 
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2">
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2"
+          >
             {title}
-          </h1>
-          <p className="text-sm text-muted-foreground mb-1">Generated by AION — Autonomous AI Scientist</p>
-          <p className="text-xs text-muted-foreground/60 mb-8">Research query: "{query}"</p>
-          <hr className="border-border/40 mb-8" />
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-sm text-muted-foreground mb-1"
+          >
+            Generated by AION — Autonomous AI Scientist
+          </motion.p>
+          <p className="text-xs text-muted-foreground/50 mb-8">Research query: "{query}"</p>
+          <hr className="border-border/30 mb-8" />
 
-          <Section title="Abstract">{abstract}</Section>
-          <Section title="1. Introduction">{introduction}</Section>
-          <Section title="2. Methods">{methods}</Section>
-          <Section title="3. Results">
-            {results}
-            <div className="mt-8">
-              <InteractiveFigures />
-            </div>
-          </Section>
-          <Section title="4. Discussion">{discussion}</Section>
+          {sections.map((sec, i) => (
+            <motion.div
+              key={sec.title}
+              custom={i}
+              initial="hidden"
+              animate="visible"
+              variants={sectionVariants}
+            >
+              <Section title={sec.title}>
+                {sec.content}
+                {sec.extra && (
+                  <div className="mt-8">
+                    <InteractiveFigures />
+                  </div>
+                )}
+              </Section>
+            </motion.div>
+          ))}
 
-          <Section title="5. Limitations">
-            <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
-              <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
-              <ul className="list-disc list-inside space-y-1 pl-2">
-                <li>Data was synthetically generated and may not reflect real-world distributions.</li>
-                <li>Statistical results are illustrative and require validation with empirical datasets.</li>
-                <li>The literature review was AI-assisted and may not capture all relevant publications.</li>
-                <li>Competing hypotheses were tested against the same simulated dataset.</li>
-              </ul>
-            </div>
-          </Section>
-
-          {references.length > 0 && (
-            <Section title="References">
-              <div className="space-y-2">
-                {references.map((ref: any, i: number) => (
-                  <p key={i} className="text-xs text-muted-foreground">{ref.text || ref}</p>
-                ))}
+          <motion.div custom={5} initial="hidden" animate="visible" variants={sectionVariants}>
+            <Section title="5. Limitations">
+              <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
+                <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  <li>Data was synthetically generated and may not reflect real-world distributions.</li>
+                  <li>Statistical results are illustrative and require validation with empirical datasets.</li>
+                  <li>The literature review was AI-assisted and may not capture all relevant publications.</li>
+                  <li>Competing hypotheses were tested against the same simulated dataset.</li>
+                </ul>
               </div>
             </Section>
+          </motion.div>
+
+          {references.length > 0 && (
+            <motion.div custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
+              <Section title="References">
+                <div className="space-y-2">
+                  {references.map((ref: any, i: number) => (
+                    <p key={i} className="text-xs text-muted-foreground">{ref.text || ref}</p>
+                  ))}
+                </div>
+              </Section>
+            </motion.div>
           )}
         </div>
       </motion.article>
@@ -149,8 +205,11 @@ export default function PaperView() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-8">
-      <h2 className="font-serif text-lg font-bold text-foreground mb-3">{title}</h2>
+    <section className="mb-8 group">
+      <h2 className="font-serif text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+        <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] opacity-0 group-hover:opacity-100 transition-opacity" />
+        {title}
+      </h2>
       <div className="font-serif text-sm text-foreground/85 leading-relaxed whitespace-pre-line">{children}</div>
     </section>
   );
