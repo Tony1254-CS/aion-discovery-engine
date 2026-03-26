@@ -33,8 +33,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-background mesh-gradient-bg">
+    <div className="relative min-h-screen flex flex-col items-center overflow-hidden bg-background mesh-gradient-bg">
       <ParticleBackground />
+
+      {/* Hero wrapper - full viewport */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center w-full">
 
       {/* Nav */}
       <motion.nav
