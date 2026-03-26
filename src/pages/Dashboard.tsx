@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
   const [selectedHyp, setSelectedHyp] = useState<number | null>(null);
   const [paperReady, setPaperReady] = useState(false);
+  const [paper, setPaper] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const abortRef = useRef(new AbortController());
 
@@ -33,6 +34,7 @@ export default function Dashboard() {
       setEdges(data.edges);
       setHypotheses(data.hypotheses);
       setPaperReady(data.paperReady);
+      if (data.paper) setPaper(data.paper);
     }, abortRef.current.signal);
     return () => abortRef.current.abort();
   }, [query]);
@@ -57,14 +59,9 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mb-1">Research Query</p>
             <p className="text-sm text-foreground leading-snug">{query}</p>
           </div>
-          {/* Progress */}
           <div className="mb-6">
             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-primary rounded-full"
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5 }}
-              />
+              <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">{Math.round(progress)}% complete</p>
           </div>
@@ -74,7 +71,7 @@ export default function Dashboard() {
             <motion.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate("/paper", { state: { query } })}
+              onClick={() => navigate("/paper", { state: { query, paper } })}
               className="aion-glow-button w-full flex items-center justify-center gap-2 text-sm mt-4 px-4 py-3"
             >
               <FileText className="h-4 w-4" />
@@ -86,7 +83,6 @@ export default function Dashboard() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
             {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
@@ -94,19 +90,13 @@ export default function Dashboard() {
           <span className="text-sm font-medium text-foreground">Research Dashboard</span>
         </div>
 
-        {/* Content grid */}
         <div className="flex-1 p-4 grid grid-rows-[1fr_auto] lg:grid-cols-[1fr_340px] lg:grid-rows-[1fr_auto] gap-4 min-h-0">
-          {/* Knowledge Graph */}
           <div className="min-h-[300px] lg:row-span-1">
             <KnowledgeGraph nodes={nodes} edges={edges} />
           </div>
-
-          {/* Hypotheses (right side on lg) */}
           <div className="lg:row-span-2 overflow-y-auto max-h-[calc(100vh-140px)]">
             <HypothesisCards hypotheses={hypotheses} selected={selectedHyp} onSelect={setSelectedHyp} />
           </div>
-
-          {/* Log Panel */}
           <div className="h-[200px] lg:h-[220px]">
             <LogPanel logs={logs} />
           </div>
