@@ -20,7 +20,7 @@ serve(async (req) => {
 
     switch (stage) {
       case "literature":
-        systemPrompt = `You are a scientific literature review agent. Given a research question, identify 8-12 relevant papers that would exist in the literature. For each paper, provide: title, authors (abbreviated), year, journal, DOI (generate realistic DOI like 10.1038/s41586-024-XXXXX), and a 3-4 sentence summary of key findings including methodology and sample size. Also identify 5 key concepts/themes. Respond in valid JSON:
+        systemPrompt = `You are a scientific literature review agent. Given a research question, identify 8-12 REAL, PUBLISHED papers from the actual scientific literature. You MUST use genuinely existing papers with their correct, real DOIs. Use well-known, highly cited papers in the relevant field. Do NOT fabricate or invent DOIs — every DOI must resolve to a real paper on doi.org. If you are unsure of a DOI, omit the doi field for that paper rather than guessing. For each paper provide: title (exact real title), authors (abbreviated), year, journal, doi (REAL existing DOI like 10.1038/s41586-023-06185-3 or 10.1126/science.abc1234 — must be genuine), and a 3-4 sentence summary. Also identify 5 key concepts/themes. Respond in valid JSON:
 {
   "papers": [{"title": "...", "authors": "...", "year": 2024, "journal": "...", "doi": "10.1038/...", "summary": "..."}],
   "concepts": ["concept1", "concept2", "concept3", "concept4", "concept5"],
