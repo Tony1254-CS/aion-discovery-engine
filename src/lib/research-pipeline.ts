@@ -1,7 +1,8 @@
+import { supabase } from "@/integrations/supabase/client";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "./research-types";
 
-// Simulated research pipeline
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+function rnd(min: number, max: number) { return min + Math.random() * (max - min); }
 
 type UpdateCb = (data: {
   stages: ResearchStage[];
@@ -10,10 +11,16 @@ type UpdateCb = (data: {
   edges: GraphEdge[];
   hypotheses: Hypothesis[];
   paperReady: boolean;
+  paper?: any;
 }) => void;
 
-function rnd(min: number, max: number) {
-  return min + Math.random() * (max - min);
+async function callAgent(stage: string, query: string, context?: any) {
+  const { data, error } = await supabase.functions.invoke("research-agent", {
+    body: { query, stage, context },
+  });
+  if (error) throw new Error(error.message || "Agent call failed");
+  if (data?.error) throw new Error(data.error);
+  return data.result;
 }
 
 export async function runResearchPipeline(query: string, onUpdate: UpdateCb, signal: AbortSignal) {
@@ -30,6 +37,7 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
   const edges: GraphEdge[] = [];
   const hypotheses: Hypothesis[] = [];
   let logId = 0;
+  let researchContext: any = {};
 
   const addLog = (text: string, type: LogEntry["type"] = "info") => {
     logs.push({ id: logId++, time: new Date().toLocaleTimeString(), text, type });
@@ -37,95 +45,115 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
   const addNode = (id: string, label: string, type: GraphNode["type"]) => {
     nodes.push({ id, label, type, x: rnd(-3, 3), y: rnd(-3, 3), z: rnd(-2, 2) });
   };
-  const emit = () => onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: false });
-
+  const emit = (extra?: any) => onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: false, ...extra });
   const setStage = (id: string, status: ResearchStage["status"], detail?: string) => {
     const s = stages.find((s) => s.id === id)!;
     s.status = status;
     if (detail) s.detail = detail;
   };
 
-  // Stage 1: Literature
-  setStage("literature", "active");
-  addLog(`Starting research: "${query}"`, "info");
-  emit();
-  await delay(800);
-  if (signal.aborted) return;
-
-  const papers = ["Microplastic accumulation in marine sediments", "Coral-associated bacterial diversity", "Effects of polymer leachates on biofilm formation", "Reef resilience under anthropogenic stress", "Chemotaxis in marine bacteria", "Nanoplastic ingestion by coral polyps"];
-  for (let i = 0; i < papers.length; i++) {
-    addNode(`paper-${i}`, papers[i], "paper");
-    addLog(`Found paper: "${papers[i]}"`, "info");
-    if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
+  try {
+    // Stage 1: Literature Review
+    setStage("literature", "active");
+    addLog(`Starting AI research: "${query}"`, "info");
     emit();
-    await delay(400);
+
+    const litResult = await callAgent("literature", query);
     if (signal.aborted) return;
+    researchContext.literature = litResult;
+
+    const papers = litResult.papers || [];
+    papers.forEach((p: any, i: number) => {
+      addNode(`paper-${i}`, p.title, "paper");
+      if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
+      addLog(`Found: "${p.title}" (${p.year})`, "info");
+    });
+    (litResult.concepts || []).forEach((c: string, i: number) => {
+      addNode(`concept-${i}`, c, "concept");
+      edges.push({ from: `paper-${i % papers.length}`, to: `concept-${i}` });
+      edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
+    });
+    addLog(`Indexed ${papers.length} papers, identified ${(litResult.concepts || []).length} key concepts`, "success");
+    setStage("literature", "done", `${papers.length} papers`);
+    emit();
+
+    // Stage 2: Gap Identification
+    setStage("gaps", "active");
+    addLog("Analyzing literature for research gaps…", "info");
+    emit();
+
+    const gapsResult = await callAgent("gaps", query, { synthesis: litResult.synthesis, concepts: litResult.concepts });
+    if (signal.aborted) return;
+    researchContext.gaps = gapsResult.gaps;
+
+    (gapsResult.gaps || []).forEach((g: any, i: number) => {
+      addLog(`Gap ${i + 1}: ${g.title}`, "info");
+    });
+    addLog(`Identified ${(gapsResult.gaps || []).length} research gaps`, "success");
+    setStage("gaps", "done", `${(gapsResult.gaps || []).length} gaps`);
+    emit();
+
+    // Stage 3: Hypotheses
+    setStage("hypotheses", "active");
+    addLog("Generating novel hypotheses…", "info");
+    emit();
+
+    const hypResult = await callAgent("hypotheses", query, { gaps: gapsResult.gaps, synthesis: litResult.synthesis });
+    if (signal.aborted) return;
+    researchContext.hypotheses = hypResult.hypotheses;
+
+    (hypResult.hypotheses || []).forEach((h: any, i: number) => {
+      hypotheses.push({ id: i + 1, title: h.title, description: h.description, predictedOutcome: h.predictedOutcome, approach: h.approach });
+      addNode(`hyp-${i}`, h.title, "hypothesis");
+      edges.push({ from: `concept-${i % (litResult.concepts?.length || 1)}`, to: `hyp-${i}` });
+      addLog(`Hypothesis ${i + 1}: ${h.title}`, "info");
+    });
+    setStage("hypotheses", "done", `${hypotheses.length} hypotheses`);
+    emit();
+
+    // Stage 4: Code / Experiment Design
+    setStage("code", "active");
+    addLog("Designing computational experiment for Hypothesis 1…", "info");
+    emit();
+    await delay(500);
+
+    const selectedHyp = (hypResult.hypotheses || [])[0] || hypotheses[0];
+    const expResult = await callAgent("experiment", query, { hypothesis: selectedHyp });
+    if (signal.aborted) return;
+    researchContext.experiment = expResult;
+
+    addLog(`Methodology: ${expResult.methodology?.substring(0, 80)}…`, "info");
+    setStage("code", "done");
+    emit();
+
+    // Stage 5: Run Experiments
+    setStage("experiments", "active");
+    addLog("Processing experimental results…", "info");
+    emit();
+    await delay(800);
+
+    const results = expResult.results || {};
+    addLog(`Results: p=${results.pValue}, effect size=${results.effectSize}, n=${results.sampleSize}`, "success");
+    addLog(`Key finding: ${results.keyFinding || "Significant effect observed"}`, "success");
+    setStage("experiments", "done");
+    emit();
+
+    // Stage 6: Paper
+    setStage("paper", "active");
+    addLog("Writing complete research paper…", "info");
+    emit();
+
+    const paperResult = await callAgent("paper", query, researchContext);
+    if (signal.aborted) return;
+
+    addLog("Research paper complete! 🎉", "success");
+    setStage("paper", "done");
+    onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: true, paper: paperResult });
+
+  } catch (err: any) {
+    const currentStage = stages.find(s => s.status === "active");
+    if (currentStage) setStage(currentStage.id, "error");
+    addLog(`Error: ${err.message}`, "error");
+    emit();
   }
-  addLog(`Indexed ${papers.length} relevant papers from ArXiv & PubMed`, "success");
-  setStage("literature", "done", `${papers.length} papers`);
-  emit();
-
-  // Stage 2: Gaps
-  setStage("gaps", "active");
-  await delay(600);
-  if (signal.aborted) return;
-  const concepts = ["Microplastic biofilm colonization", "Coral holobiont disruption", "Bacterial chemotaxis alteration"];
-  concepts.forEach((c, i) => {
-    addNode(`concept-${i}`, c, "concept");
-    edges.push({ from: `paper-${i}`, to: `concept-${i}` });
-    edges.push({ from: `paper-${i + 1}`, to: `concept-${i}` });
-  });
-  addLog("Identified 3 key research gaps via semantic clustering", "success");
-  setStage("gaps", "done", "3 gaps");
-  emit();
-
-  // Stage 3: Hypotheses
-  setStage("hypotheses", "active");
-  await delay(800);
-  if (signal.aborted) return;
-  const hyps: Hypothesis[] = [
-    { id: 1, title: "Biofilm-Mediated Toxin Transfer", description: "Microplastic surfaces host pathogenic biofilms that transfer toxins to coral tissue.", predictedOutcome: "Increased coral bleaching rate proportional to microplastic density.", approach: "In-vitro biofilm assays + statistical modeling" },
-    { id: 2, title: "Chemotaxis Disruption Hypothesis", description: "Polymer leachates interfere with bacterial chemotaxis, reducing symbiont recruitment.", predictedOutcome: "Reduced bacterial motility in leachate-exposed treatments.", approach: "Motility tracking + gradient assays" },
-    { id: 3, title: "Immune Suppression via Nanoplastics", description: "Nanoplastic ingestion suppresses coral innate immune pathways.", predictedOutcome: "Downregulation of TLR and complement genes.", approach: "RNA-seq differential expression analysis" },
-  ];
-  hyps.forEach((h, i) => {
-    hypotheses.push(h);
-    addNode(`hyp-${i}`, h.title, "hypothesis");
-    edges.push({ from: `concept-${i % concepts.length}`, to: `hyp-${i}` });
-    addLog(`Hypothesis ${i + 1}: ${h.title}`, "info");
-  });
-  setStage("hypotheses", "done", "3 hypotheses");
-  emit();
-
-  // Stage 4: Code
-  setStage("code", "active");
-  addLog("Generating Python experiment code for Hypothesis 1…", "info");
-  emit();
-  await delay(1200);
-  if (signal.aborted) return;
-  addLog("Code generated: Monte Carlo simulation of biofilm toxin transfer", "success");
-  setStage("code", "done");
-  emit();
-
-  // Stage 5: Experiments
-  setStage("experiments", "active");
-  addLog("Executing simulation (5000 iterations)…", "info");
-  emit();
-  await delay(1500);
-  if (signal.aborted) return;
-  addLog("Simulation complete. p-value = 0.003, effect size d = 1.24", "success");
-  addLog("Generated 3 figures: scatter plot, heatmap, box plot", "success");
-  setStage("experiments", "done");
-  emit();
-
-  // Stage 6: Paper
-  setStage("paper", "active");
-  addLog("Composing research paper sections…", "info");
-  emit();
-  await delay(1000);
-  if (signal.aborted) return;
-  addLog("Abstract, Introduction, Methods, Results, Discussion, References — all complete", "success");
-  setStage("paper", "done");
-  addLog("Research paper ready! 🎉", "success");
-  onUpdate({ stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges], hypotheses: [...hypotheses], paperReady: true });
 }
