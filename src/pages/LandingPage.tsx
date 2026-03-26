@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
+import AionShowcase from "@/components/landing/AionShowcase";
 import { useNavigate } from "react-router-dom";
 
 const exampleQueries = [
