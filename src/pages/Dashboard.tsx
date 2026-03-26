@@ -16,6 +16,7 @@ import DatasetPreview from "@/components/DatasetPreview";
 import HypothesisSimulation from "@/components/HypothesisSimulation";
 import DebateMode from "@/components/DebateMode";
 import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
+import LiteratureMonitor from "@/components/LiteratureMonitor";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
