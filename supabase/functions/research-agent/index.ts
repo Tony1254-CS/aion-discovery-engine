@@ -78,7 +78,7 @@ MANDATORY SECTION LENGTHS (violation = failure):
 - "results": EXACTLY 6 paragraphs: (1) Descriptive Statistics, (2) Primary Hypothesis Test, (3) Secondary Analyses, (4) Subgroup Analyses, (5) Sensitivity/Robustness Checks, (6) Summary of Effect Sizes. Include exact p-values, CIs, effect sizes in EVERY paragraph.
 - "discussion": EXACTLY 7 paragraphs: (1) Summary of Findings, (2) Comparison with Prior Work, (3) Theoretical Implications, (4) Practical Implications, (5) Strengths, (6) Limitations, (7) Future Directions. Each 120-160 words.
 - "conclusion": EXACTLY 4 paragraphs summarizing contributions, implications, recommendations, future work. Each 100-140 words.
-- "references": EXACTLY 20-25 references in APA 7th format with realistic DOIs (https://doi.org/10.XXXX/XXXXX)
+- "references": EXACTLY 20-25 references in APA 7th format. CRITICAL: Use ONLY real, genuinely existing published papers with their correct, verifiable DOIs that resolve on https://doi.org/. Do NOT fabricate or invent DOIs. Use well-known, highly cited papers from Nature, Science, PNAS, Lancet, JAMA, PLoS ONE, Psychological Bulletin, etc. If you are unsure of a DOI, provide the reference WITHOUT a DOI rather than inventing one.
 
 CRITICAL RULES:
 1. TOTAL PAPER MUST EXCEED 6000 WORDS. Count carefully.
@@ -86,7 +86,7 @@ CRITICAL RULES:
 3. Do NOT use markdown formatting — plain text only.
 4. Every claim must cite [Author, Year].
 5. Results must include specific numbers: p-values, effect sizes, confidence intervals, sample sizes.
-6. References must have realistic DOI links.
+6. References MUST cite real papers with real DOIs — never fabricate a DOI.
 
 Respond ONLY with valid JSON (no markdown, no code blocks):
 {
