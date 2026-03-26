@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2 } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PaperView() {
   const navigate = useNavigate();
