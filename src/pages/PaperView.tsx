@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Beaker, Home } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
+import PeerReview from "@/components/PeerReview";
+import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 
 export default function PaperView() {
   const navigate = useNavigate();
@@ -45,10 +47,10 @@ export default function PaperView() {
             </div>
             <span className="text-sm font-bold text-foreground tracking-tight">AION</span>
           </div>
-          <button className="aion-glow-button text-xs px-4 py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md">
-            <Download className="h-3.5 w-3.5" />
-            Download PDF
-          </button>
+          <div className="flex items-center gap-2">
+            <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
+            <ReproducibilityExporter paper={paper} query={query} />
+          </div>
         </div>
       </div>
 
@@ -59,6 +61,17 @@ export default function PaperView() {
         className="max-w-4xl mx-auto px-4 py-12"
       >
         <div className="glass-panel-elevated p-8 sm:p-12">
+          {/* Badges */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+              <Award className="h-3 w-3" />
+              Reproducible
+            </span>
+            <span className="inline-flex text-[10px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+              AI-Generated
+            </span>
+          </div>
+
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2">
             {title}
           </h1>
@@ -71,6 +84,19 @@ export default function PaperView() {
           <Section title="2. Methods">{methods}</Section>
           <Section title="3. Results">{results}</Section>
           <Section title="4. Discussion">{discussion}</Section>
+
+          {/* Limitations auto-generated */}
+          <Section title="5. Limitations">
+            <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
+              <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
+              <ul className="list-disc list-inside space-y-1 pl-2">
+                <li>Data was synthetically generated and may not reflect real-world distributions.</li>
+                <li>Statistical results are illustrative and require validation with empirical datasets.</li>
+                <li>The literature review was AI-assisted and may not capture all relevant publications.</li>
+                <li>Competing hypotheses were tested against the same simulated dataset.</li>
+              </ul>
+            </div>
+          </Section>
 
           {references.length > 0 && (
             <Section title="References">
