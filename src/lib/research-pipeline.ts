@@ -104,7 +104,7 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
 
     (hypResult.hypotheses || []).forEach((h: any, i: number) => {
       hypotheses.push({ id: i + 1, title: h.title, description: h.description, predictedOutcome: h.predictedOutcome, approach: h.approach });
-      addNode(`hyp-${i}`, h.title, "hypothesis");
+      addNode(`hyp-${i}`, h.title, "hypothesis", h.description);
       edges.push({ from: `concept-${i % (litResult.concepts?.length || 1)}`, to: `hyp-${i}` });
       addLog(`Hypothesis ${i + 1}: ${h.title}`, "info");
     });
