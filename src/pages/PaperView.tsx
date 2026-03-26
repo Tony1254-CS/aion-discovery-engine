@@ -5,6 +5,7 @@ import { ArrowLeft, Beaker, Home, Award } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
+import InteractiveFigures from "@/components/InteractiveFigures";
 
 export default function PaperView() {
   const navigate = useNavigate();
@@ -82,10 +83,14 @@ export default function PaperView() {
           <Section title="Abstract">{abstract}</Section>
           <Section title="1. Introduction">{introduction}</Section>
           <Section title="2. Methods">{methods}</Section>
-          <Section title="3. Results">{results}</Section>
+          <Section title="3. Results">
+            {results}
+            <div className="mt-8">
+              <InteractiveFigures />
+            </div>
+          </Section>
           <Section title="4. Discussion">{discussion}</Section>
 
-          {/* Limitations auto-generated */}
           <Section title="5. Limitations">
             <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
               <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
