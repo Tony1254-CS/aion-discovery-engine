@@ -66,34 +66,35 @@ serve(async (req) => {
         break;
 
       case "paper":
-        model = "google/gemini-2.5-flash";
-        maxTokens = 16384;
-        systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper that would span 14-15 pages in print. Use formal academic language with extensive detail. Each section must be thorough and substantive.
+        model = "google/gemini-2.5-pro";
+        maxTokens = 32768;
+        systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper spanning 14-15 pages. Use formal academic language. Every section MUST be thorough — this is non-negotiable.
 
-CRITICAL REQUIREMENTS:
-- The "literatureReview" must be 5-8 paragraphs covering the entire state of knowledge, organized thematically with proper citations
-- The "introduction" must be 4-6 paragraphs establishing context, motivation, and research questions
-- The "methods" must be 4-6 paragraphs with detailed subsections on study design, data collection, variables, statistical analysis
-- The "results" must be 4-6 paragraphs presenting findings systematically with specific numbers, effect sizes, confidence intervals
-- The "discussion" must be 5-7 paragraphs interpreting results, comparing with literature, explaining mechanisms
-- The "conclusion" must be 3-4 paragraphs summarizing contributions, implications, and future directions
-- References must include realistic DOIs in proper APA format
+MANDATORY SECTION LENGTHS (violation = failure):
+- "abstract": EXACTLY 250-350 words
+- "introduction": EXACTLY 6 paragraphs, each 120-180 words (total ~900 words)
+- "literatureReview": EXACTLY 8 paragraphs, each 120-180 words (total ~1200 words), organized thematically with [Author, Year] citations in every paragraph
+- "methods": EXACTLY 6 paragraphs covering: (1) Study Design Overview, (2) Population & Sampling, (3) Independent Variables, (4) Dependent Variables & Measures, (5) Statistical Analysis Plan, (6) Ethical Considerations & Limitations of Design. Each 100-150 words.
+- "results": EXACTLY 6 paragraphs: (1) Descriptive Statistics, (2) Primary Hypothesis Test, (3) Secondary Analyses, (4) Subgroup Analyses, (5) Sensitivity/Robustness Checks, (6) Summary of Effect Sizes. Include exact p-values, CIs, effect sizes.
+- "discussion": EXACTLY 7 paragraphs: (1) Summary of Findings, (2) Comparison with Prior Work, (3) Theoretical Implications, (4) Practical Implications, (5) Strengths, (6) Limitations, (7) Future Directions. Each 120-160 words.
+- "conclusion": EXACTLY 4 paragraphs summarizing contributions, implications, recommendations, future work. Each 100-140 words.
+- "references": EXACTLY 20-25 references in APA 7th format with realistic DOIs (https://doi.org/10.XXXX/XXXXX)
 
-Respond in valid JSON:
+TOTAL PAPER MUST EXCEED 6000 WORDS. This is critical.
+
+Respond ONLY with valid JSON (no markdown, no code blocks):
 {
-  "title": "A descriptive academic title",
-  "abstract": "A comprehensive 250-300 word abstract covering background, methods, results, and conclusions",
-  "introduction": "4-6 detailed paragraphs (each 100-150 words) establishing the research context, identifying the problem, stating the research questions, and outlining the paper's contributions. Cite relevant papers using [Author, Year] format.",
-  "literatureReview": "5-8 detailed paragraphs (each 100-150 words) organized thematically. Review key findings, methodological approaches, theoretical frameworks, and identify gaps. Every paragraph should cite 2-3 papers using [Author, Year] format.",
-  "methods": "4-6 detailed paragraphs covering: Study Design and Rationale, Data Collection and Participants, Variables and Measures, Statistical Analysis Plan, Ethical Considerations. Include specific numbers (sample sizes, parameters, thresholds).",
-  "results": "4-6 detailed paragraphs presenting: Descriptive Statistics, Primary Analysis Results (with exact p-values, effect sizes, CIs), Secondary Analyses, Sensitivity Analyses. Include specific statistical values throughout.",
-  "discussion": "5-7 detailed paragraphs covering: Summary of Key Findings, Comparison with Prior Literature, Theoretical Implications, Practical Implications, Strengths of the Study, Limitations and Caveats, and Recommendations.",
-  "conclusion": "3-4 paragraphs summarizing the study's main contributions, broader implications for the field, specific actionable recommendations, and concrete directions for future research.",
-  "references": [{"text": "Author, A. B., & Author, C. D. (Year). Title of the article. Journal Name, Volume(Issue), Pages. https://doi.org/10.XXXX/XXXXX"}]
-}
-
-IMPORTANT: Generate at least 15-20 references with realistic DOIs. Each section should be substantial — aim for at least 500-800 words per major section. The total paper should be 5000-7000 words minimum.`;
-        userPrompt = `Full research context including literature, gaps, hypotheses, competing hypotheses, experiment results, novelty analysis, and warnings: ${JSON.stringify(context)}\n\nOriginal research question: "${query}"\n\nWrite a comprehensive, publication-quality research paper. Be extremely detailed and thorough in every section.`;
+  "title": "Full descriptive academic title",
+  "abstract": "...",
+  "introduction": "...",
+  "literatureReview": "...",
+  "methods": "...",
+  "results": "...",
+  "discussion": "...",
+  "conclusion": "...",
+  "references": [{"text": "Author, A. B., & Author, C. D. (Year). Title. Journal, Vol(Issue), Pages. https://doi.org/10.XXXX/XXXXX"}]
+}`;
+        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper. Every section must meet the EXACT paragraph counts specified. Do NOT truncate or abbreviate any section. The paper must be 6000+ words total.`;
         break;
 
       case "refine":
