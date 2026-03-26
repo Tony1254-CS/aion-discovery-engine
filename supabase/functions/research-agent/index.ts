@@ -10,12 +10,12 @@ serve(async (req) => {
 
   try {
     const { query, stage, context } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
     let systemPrompt = "";
     let userPrompt = "";
-    let model = "google/gemini-3-flash-preview";
+    let model = "gemini-2.0-flash";
     let maxTokens = 4096;
 
     switch (stage) {
@@ -66,7 +66,7 @@ serve(async (req) => {
         break;
 
       case "paper":
-        model = "google/gemini-2.5-pro";
+        model = "gemini-2.5-pro-preview-06-05";
         maxTokens = 65536;
         systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper spanning 14-15 pages. Use formal academic language. Every section MUST be thorough — this is non-negotiable.
 
@@ -104,7 +104,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "refine":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 16384;
         systemPrompt = `You are a research paper refinement agent. Given a completed paper and a user request, modify the specific section or aspect requested. Return the COMPLETE updated paper in the same JSON format. Maintain or increase the length and detail of all sections. The JSON must include ALL fields: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.`;
         userPrompt = `Current paper: ${JSON.stringify(context?.paper)}\nUser request: "${query}"`;
@@ -138,7 +138,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "research-gaps":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 8192;
         systemPrompt = `You are a research gap analysis agent. Given a completed research paper and its context, identify 4-5 specific research gaps and provide actionable next-step suggestions for each. 
 
@@ -171,14 +171,14 @@ Respond in valid JSON:
         break;
 
       case "research-proposal":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 4096;
         systemPrompt = `You are a research proposal writing agent. Given a research gap and a suggestion, write a concise 1-2 page research proposal with: (1) Introduction & Background (2 paragraphs), (2) Research Question & Hypothesis, (3) Proposed Methodology (2 paragraphs), (4) Expected Outcomes, (5) Suggested Timeline (6 months). Write in formal academic prose. Return ONLY valid JSON: {"proposal": "The full proposal text with paragraph breaks"}`;
         userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
         break;
 
       case "debate":
-        model = "google/gemini-3-flash-preview";
+        model = "gemini-2.0-flash";
         maxTokens = 2048;
         systemPrompt = context?.systemPrompt || "You are a scientific debater.";
         userPrompt = (context?.history || []).map((m: any) => m.content).join("\n\n") + `\n\nNow respond in your role. Research question: "${query}"`;
@@ -188,20 +188,19 @@ Respond in valid JSON:
         throw new Error(`Unknown stage: ${stage}`);
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`;
+
+    const response = await fetch(googleUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+        contents: [
+          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
         ],
-        max_tokens: maxTokens,
-        stream: false,
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          temperature: 0.7,
+        },
       }),
     });
 
@@ -211,23 +210,17 @@ Respond in valid JSON:
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds in Settings > Workspace > Usage." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error("AI gateway error");
+      console.error("Google AI error:", response.status, t);
+      throw new Error(`Google AI error: ${response.status}`);
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // Check if output was truncated
-    const finishReason = data.choices?.[0]?.finish_reason;
-    if (finishReason === "length" || finishReason === "MAX_TOKENS") {
-      console.warn(`Output truncated for stage ${stage} - finish_reason: ${finishReason}`);
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason === "MAX_TOKENS") {
+      console.warn(`Output truncated for stage ${stage} - finishReason: ${finishReason}`);
     }
 
     // Parse JSON from response (handle markdown code blocks)
