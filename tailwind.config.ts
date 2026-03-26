@@ -64,6 +64,9 @@ export default {
           paper: "hsl(var(--aion-node-paper))",
           concept: "hsl(var(--aion-node-concept))",
           hypothesis: "hsl(var(--aion-node-hypothesis))",
+          gold: "hsl(var(--aion-gold))",
+          rose: "hsl(var(--aion-rose))",
+          violet: "hsl(var(--aion-violet))",
         },
       },
       borderRadius: {

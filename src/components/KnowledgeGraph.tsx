@@ -7,9 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, BookOpen, AlertTriangle, ThumbsUp, ThumbsDown } from "lucide-react";
 
 const NODE_COLORS: Record<GraphNode["type"], { main: string; glow: string }> = {
-  paper: { main: "#4a9eff", glow: "#4a9eff" },
-  concept: { main: "#34d399", glow: "#34d399" },
-  hypothesis: { main: "#fbbf24", glow: "#fbbf24" },
+  paper: { main: "#6ba3d4", glow: "#6ba3d4" },
+  concept: { main: "#5cb89a", glow: "#5cb89a" },
+  hypothesis: { main: "#d4956b", glow: "#d4956b" },
 };
 
 const NODE_SIZES: Record<GraphNode["type"], number> = {
