@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -55,6 +55,7 @@
     --aion-node-hypothesis: 32 90% 55%;
     --aion-gradient-start: 168 78% 26%;
     --aion-gradient-end: 195 75% 38%;
+    --aion-gradient-accent: 280 60% 55%;
     --aion-shimmer: 168 60% 85%;
   }
 
@@ -91,6 +92,7 @@
     --aion-glass: 222 22% 10%;
     --aion-glass-border: 222 15% 18%;
     --aion-shimmer: 168 40% 20%;
+    --aion-gradient-accent: 280 50% 50%;
   }
 }
 
@@ -104,35 +106,96 @@
 }
 
 @layer components {
+  /* ===== GLASSMORPHISM SYSTEM ===== */
   .glass-panel {
-    @apply bg-[hsl(var(--aion-glass)/0.65)] backdrop-blur-2xl
-      border border-[hsl(var(--aion-glass-border)/0.6)]
-      rounded-2xl shadow-[0_4px_24px_-4px_hsl(220_25%_8%/0.06),0_1px_2px_hsl(220_25%_8%/0.04)];
+    @apply bg-[hsl(var(--aion-glass)/0.55)] backdrop-blur-2xl
+      border border-[hsl(var(--aion-glass-border)/0.5)]
+      rounded-2xl;
+    box-shadow:
+      0 4px 24px -4px hsl(220 25% 8% / 0.06),
+      0 1px 2px hsl(220 25% 8% / 0.04),
+      inset 0 1px 0 hsl(0 0% 100% / 0.06);
   }
 
   .glass-panel-elevated {
-    @apply bg-[hsl(var(--aion-glass)/0.8)] backdrop-blur-2xl
-      border border-[hsl(var(--aion-glass-border)/0.5)]
-      rounded-2xl shadow-[0_8px_40px_-8px_hsl(168_78%_26%/0.12),0_2px_8px_hsl(220_25%_8%/0.06)];
+    @apply bg-[hsl(var(--aion-glass)/0.7)] backdrop-blur-3xl
+      border border-[hsl(var(--aion-glass-border)/0.4)]
+      rounded-2xl;
+    box-shadow:
+      0 8px 40px -8px hsl(168 78% 26% / 0.1),
+      0 2px 8px hsl(220 25% 8% / 0.06),
+      0 20px 60px -15px hsl(220 25% 8% / 0.08),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
   }
 
+  .glass-panel-hero {
+    @apply backdrop-blur-3xl rounded-3xl;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--aion-glass) / 0.6) 0%,
+      hsl(var(--aion-glass) / 0.4) 100%
+    );
+    border: 1px solid hsl(var(--aion-glass-border) / 0.3);
+    box-shadow:
+      0 25px 60px -12px hsl(168 78% 26% / 0.12),
+      0 8px 24px hsl(220 25% 8% / 0.08),
+      inset 0 1px 0 hsl(0 0% 100% / 0.1),
+      inset 0 -1px 0 hsl(220 25% 8% / 0.05);
+  }
+
+  /* ===== GRADIENT TEXT ===== */
   .aion-gradient-text {
-    @apply bg-gradient-to-r from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--aion-gradient-start)) 0%,
+      hsl(var(--aion-gradient-end)) 50%,
+      hsl(var(--aion-gradient-accent)) 100%
+    );
   }
 
+  /* ===== BUTTONS ===== */
   .aion-glow-button {
-    @apply bg-gradient-to-r from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))]
-      text-primary-foreground px-8 py-4 rounded-2xl font-semibold text-lg
-      shadow-[0_0_30px_hsl(var(--aion-glow)/0.25),0_4px_12px_hsl(var(--aion-glow)/0.15)]
-      hover:shadow-[0_0_50px_hsl(var(--aion-glow)/0.4),0_6px_20px_hsl(var(--aion-glow)/0.25)]
-      hover:brightness-110 active:scale-[0.98]
-      transition-all duration-300 ease-out;
+    @apply text-primary-foreground px-8 py-4 rounded-2xl font-semibold text-lg
+      active:scale-[0.97] transition-all duration-300 ease-out relative overflow-hidden;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--aion-gradient-start)) 0%,
+      hsl(var(--aion-gradient-end)) 60%,
+      hsl(var(--aion-gradient-accent) / 0.6) 100%
+    );
+    box-shadow:
+      0 0 30px hsl(var(--aion-glow) / 0.2),
+      0 4px 16px hsl(var(--aion-glow) / 0.15),
+      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+  }
+  .aion-glow-button:hover {
+    box-shadow:
+      0 0 50px hsl(var(--aion-glow) / 0.35),
+      0 8px 32px hsl(var(--aion-glow) / 0.25),
+      inset 0 1px 0 hsl(0 0% 100% / 0.2);
+    filter: brightness(1.08);
+  }
+  .aion-glow-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 25%,
+      hsl(0 0% 100% / 0.12) 50%,
+      transparent 75%
+    );
+    background-size: 250% 100%;
+    animation: btnShimmer 3s ease-in-out infinite;
   }
 
+  /* ===== PULSE ===== */
   .aion-pulse {
     animation: aionPulse 3s ease-in-out infinite;
   }
 
+  /* ===== SHIMMER ===== */
   .aion-shimmer {
     background: linear-gradient(
       110deg,
@@ -144,17 +207,102 @@
     animation: shimmer 3s ease-in-out infinite;
   }
 
+  /* ===== AURORA GLOW ===== */
+  .aurora-glow {
+    position: relative;
+  }
+  .aurora-glow::before {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: radial-gradient(
+      ellipse at 30% 50%,
+      hsl(var(--aion-gradient-start) / 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 70% 40%,
+      hsl(var(--aion-gradient-end) / 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 50% 80%,
+      hsl(var(--aion-gradient-accent) / 0.04) 0%,
+      transparent 50%
+    );
+    animation: auroraMove 12s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* ===== MESH GRADIENT BG ===== */
+  .mesh-gradient-bg {
+    position: relative;
+    overflow: hidden;
+  }
+  .mesh-gradient-bg::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+      radial-gradient(circle at 20% 30%, hsl(var(--aion-gradient-start) / 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, hsl(var(--aion-gradient-end) / 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, hsl(var(--aion-gradient-accent) / 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, hsl(168 78% 26% / 0.04) 0%, transparent 35%);
+    animation: meshRotate 25s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== TIMELINE ===== */
   .stage-line {
     @apply w-0.5 bg-border;
   }
   .stage-line-active {
     @apply w-0.5 bg-primary;
   }
+
+  /* ===== FLOATING ANIMATION ===== */
+  .float-gentle {
+    animation: float 6s ease-in-out infinite;
+  }
+  .float-gentle-delayed {
+    animation: float 6s ease-in-out infinite 2s;
+  }
+
+  /* ===== GLOW RING ===== */
+  .glow-ring {
+    box-shadow:
+      0 0 0 1px hsl(var(--aion-glow) / 0.1),
+      0 0 20px hsl(var(--aion-glow) / 0.08);
+  }
+  .glow-ring-strong {
+    box-shadow:
+      0 0 0 1px hsl(var(--aion-glow) / 0.2),
+      0 0 30px hsl(var(--aion-glow) / 0.15),
+      0 0 60px hsl(var(--aion-glow) / 0.05);
+  }
+
+  /* ===== SCROLLBAR ===== */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
 }
 
+/* ===== KEYFRAMES ===== */
 @keyframes aionPulse {
   0%, 100% { box-shadow: 0 0 20px hsl(168 78% 26% / 0.15), 0 4px 12px hsl(168 78% 26% / 0.1); }
-  50% { box-shadow: 0 0 45px hsl(168 78% 26% / 0.35), 0 6px 20px hsl(168 78% 26% / 0.2); }
+  50% { box-shadow: 0 0 45px hsl(168 78% 26% / 0.3), 0 6px 20px hsl(168 78% 26% / 0.2); }
 }
 
 @keyframes shimmer {
@@ -162,7 +310,33 @@
   100% { background-position: -200% 0; }
 }
 
+@keyframes btnShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -100% 0; }
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes auroraMove {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  33% { transform: rotate(3deg) scale(1.02); }
+  66% { transform: rotate(-2deg) scale(0.98); }
+}
+
+@keyframes meshRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes borderGlow {
+  0%, 100% { border-color: hsl(var(--aion-glow) / 0.15); }
+  50% { border-color: hsl(var(--aion-glow) / 0.35); }
 }
