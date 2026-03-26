@@ -6,6 +6,7 @@ import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
+import ResearchGaps from "@/components/ResearchGaps";
 import { supabase } from "@/integrations/supabase/client";
 
 const sectionVariants = {
@@ -50,6 +51,7 @@ export default function PaperView() {
   const discussion = paper?.discussion || "No discussion generated.";
   const conclusion = paper?.conclusion || "";
   const references = paper?.references || [];
+  const researchGaps = state?.researchGaps || [];
 
   // Build sections dynamically
   const sections: { title: string; content: string; showFigures?: boolean }[] = [
@@ -210,6 +212,13 @@ export default function PaperView() {
               </div>
             </Section>
           </motion.div>
+
+          {/* Research Gaps & Next Steps */}
+          {researchGaps.length > 0 && (
+            <motion.div custom={limIdx + 1} initial="hidden" animate="visible" variants={sectionVariants}>
+              <ResearchGaps gaps={researchGaps} query={query} />
+            </motion.div>
+          )}
 
           {/* References */}
           {references.length > 0 && (

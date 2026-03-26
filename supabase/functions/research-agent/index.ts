@@ -131,6 +131,46 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         userPrompt = `Research gaps: ${JSON.stringify(context?.gaps)}\nLiterature: ${JSON.stringify(context?.synthesis)}\nQuestion: "${query}"`;
         break;
 
+      case "research-gaps":
+        model = "google/gemini-2.5-flash";
+        maxTokens = 8192;
+        systemPrompt = `You are a research gap analysis agent. Given a completed research paper and its context, identify 4-5 specific research gaps and provide actionable next-step suggestions for each. 
+
+For each gap, classify it as one of: "unanswered", "contradiction", "methodological", or "under-explored".
+
+For each gap, provide 1-2 concrete future research suggestions with a testable hypothesis draft, suggested variables, and dataset recommendation.
+
+Respond in valid JSON:
+{
+  "gaps": [
+    {
+      "title": "Short gap title",
+      "description": "3-4 sentence explanation of why this gap exists and its significance",
+      "type": "unanswered|contradiction|methodological|under-explored",
+      "suggestions": [
+        {
+          "title": "Concrete suggestion title",
+          "description": "2-3 sentences on what to do and why",
+          "hypothesisDraft": "A one-sentence testable hypothesis",
+          "suggestedIV": "Independent variable",
+          "suggestedDV": "Dependent variable",
+          "controls": "Key control variables",
+          "datasetRecommendation": "Which dataset or data collection approach to use"
+        }
+      ]
+    }
+  ]
+}`;
+        userPrompt = `Research question: "${query}"\nPaper context: ${JSON.stringify(context)}`;
+        break;
+
+      case "research-proposal":
+        model = "google/gemini-2.5-flash";
+        maxTokens = 4096;
+        systemPrompt = `You are a research proposal writing agent. Given a research gap and a suggestion, write a concise 1-2 page research proposal with: (1) Introduction & Background (2 paragraphs), (2) Research Question & Hypothesis, (3) Proposed Methodology (2 paragraphs), (4) Expected Outcomes, (5) Suggested Timeline (6 months). Write in formal academic prose. Return ONLY valid JSON: {"proposal": "The full proposal text with paragraph breaks"}`;
+        userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
+        break;
+
       default:
         throw new Error(`Unknown stage: ${stage}`);
     }

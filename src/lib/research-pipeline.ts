@@ -45,6 +45,7 @@ type UpdateCb = (data: {
   noveltyScore?: number;
   closestWork?: string;
   noveltyDifference?: string;
+  researchGaps?: any[];
 }) => void;
 
 async function callAgent(stage: string, query: string, context?: any) {
@@ -69,6 +70,7 @@ export async function runResearchPipeline(
     { id: "code", label: "Writing Code", status: "pending" },
     { id: "experiments", label: "Running Experiments", status: "pending" },
     { id: "paper", label: "Composing Paper", status: "pending" },
+    { id: "next-steps", label: "Analyzing Next Steps", status: "pending" },
   ];
   const logs: LogEntry[] = [];
   const nodes: GraphNode[] = [];
@@ -82,6 +84,7 @@ export async function runResearchPipeline(
   let noveltyDifference = "";
   let logId = 0;
   let researchContext: any = {};
+  let researchGaps: any[] = [];
 
   const addLog = (text: string, type: LogEntry["type"] = "info") => {
     logs.push({ id: logId++, time: new Date().toLocaleTimeString(), text, type });
@@ -286,11 +289,32 @@ export async function runResearchPipeline(
 
     addLog("Research paper complete! 🎉", "success");
     setStage("paper", "done");
+    emit({ paperReady: true, paper: paperResult });
+
+    // Stage 7: Research Gaps & Next Steps
+    setStage("next-steps", "active");
+    addLog("Analyzing research gaps and next steps…", "info");
+    emit({ paperReady: true, paper: paperResult });
+
+    try {
+      const gapsAnalysis = await callAgent("research-gaps", query, {
+        paper: { title: paperResult.title, abstract: paperResult.abstract, results: paperResult.results, discussion: paperResult.discussion },
+        competingHypotheses: competingHyps,
+        warnings,
+      });
+      if (signal.aborted) return;
+      researchGaps = gapsAnalysis.gaps || [];
+      addLog(`Identified ${researchGaps.length} research gaps with actionable suggestions`, "success");
+    } catch (e: any) {
+      addLog(`Gap analysis skipped: ${e.message}`, "info");
+    }
+
+    setStage("next-steps", "done");
     onUpdate({
       stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges],
       hypotheses: [...hypotheses], paperReady: true, paper: paperResult,
       competingHypotheses: [...competingHyps], warnings: [...warnings],
-      stats, noveltyScore, closestWork, noveltyDifference,
+      stats, noveltyScore, closestWork, noveltyDifference, researchGaps,
     });
 
   } catch (err: any) {
