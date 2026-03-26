@@ -100,13 +100,35 @@ export async function runResearchPipeline(
     if (detail) s.detail = detail;
   };
 
+  // Prepare dataset summary for context (truncate large data to first rows)
+  let datasetContext: any = null;
+  if (dataset?.data) {
+    try {
+      const preview = dataset.type === "json"
+        ? dataset.data.slice(0, 4000)
+        : dataset.data.split("\n").slice(0, 30).join("\n");
+      datasetContext = {
+        name: dataset.name,
+        type: dataset.type,
+        sizeKB: Math.round(dataset.size / 1024),
+        preview,
+        hasRealData: true,
+      };
+    } catch {
+      datasetContext = null;
+    }
+  }
+
   try {
     // Stage 1: Literature Review
     setStage("literature", "active");
     addLog(`Starting AI research: "${query}"`, "info");
+    if (datasetContext) {
+      addLog(`Using uploaded dataset: ${datasetContext.name} (${datasetContext.sizeKB} KB)`, "success");
+    }
     emit();
 
-    const litResult = await callAgent("literature", query);
+    const litResult = await callAgent("literature", query, datasetContext ? { dataset: datasetContext } : undefined);
     if (signal.aborted) return;
     researchContext.literature = litResult;
 
@@ -124,12 +146,14 @@ export async function runResearchPipeline(
     addLog(`Indexed ${papers.length} papers, identified ${(litResult.concepts || []).length} key concepts`, "success");
     setStage("literature", "done", `${papers.length} papers`);
 
-    // Add transparency warning: simulated data
-    warnings.push({
-      type: "simulated-data",
-      message: "Using AI-generated simulated data — exploratory only.",
-      detail: "No real dataset was matched. Results are illustrative and should not be used for clinical or policy decisions.",
-    });
+    // Add transparency warning only if no real dataset
+    if (!datasetContext) {
+      warnings.push({
+        type: "simulated-data",
+        message: "Using AI-generated simulated data — exploratory only.",
+        detail: "No real dataset was matched. Results are illustrative and should not be used for clinical or policy decisions.",
+      });
+    }
     emit();
 
     // Stage 2: Gap Identification
