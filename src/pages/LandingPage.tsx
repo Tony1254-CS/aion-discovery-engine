@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy } from "lucide-react";
+import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import AionShowcase from "@/components/landing/AionShowcase";
 import { useNavigate } from "react-router-dom";
@@ -22,14 +22,60 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } },
 };
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
+
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; data: string; type: string } | null>(null);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
+      return;
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "json", "xlsx", "xls", "tsv"].includes(ext || "")) {
+      setUploadError("Unsupported format. Use CSV, JSON, TSV, or Excel.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setUploadedFile({
+        name: file.name,
+        size: file.size,
+        data: result,
+        type: ext || "csv",
+      });
+    };
+
+    if (ext === "xlsx" || ext === "xls") {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleLaunch = () => {
     if (!query.trim()) return;
-    navigate("/dashboard", { state: { query: query.trim() } });
+    navigate("/dashboard", { state: { query: query.trim(), dataset: uploadedFile } });
   };
 
   return (
@@ -126,11 +172,46 @@ export default function LandingPage() {
                   if (e.key === "Enter" && !e.shiftKey && query.trim()) { e.preventDefault(); handleLaunch(); }
                 }}
               />
+              {/* Uploaded file display */}
+              {uploadedFile && (
+                <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-primary/[0.06] border border-primary/10">
+                  <FileSpreadsheet className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{uploadedFile.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{(uploadedFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={removeFile} className="p-1 rounded-lg hover:bg-white/[0.06] text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-destructive/[0.08] border border-destructive/15">
+                  <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                  <p className="text-[11px] text-destructive">{uploadError}</p>
+                </div>
+              )}
+
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.04]">
-                <button className="flex items-center gap-2 text-sm text-muted-foreground/40 hover:text-foreground transition-colors duration-300 group px-3 py-1.5 rounded-lg hover:bg-white/[0.04]">
-                  <Upload className="h-4 w-4 group-hover:text-primary transition-colors duration-300" />
-                  <span className="hidden sm:inline">Upload dataset</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPTED_TYPES}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="dataset-upload"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 text-sm text-muted-foreground/60 hover:text-foreground transition-colors duration-300 group px-3 py-1.5 rounded-lg hover:bg-white/[0.04]"
+                  >
+                    <Upload className="h-4 w-4 group-hover:text-primary transition-colors duration-300" />
+                    <span className="hidden sm:inline">{uploadedFile ? "Change file" : "Upload dataset"}</span>
+                  </button>
+                  <span className="text-[9px] text-muted-foreground/30 hidden sm:inline">CSV, JSON, TSV · Max 10MB</span>
+                </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}

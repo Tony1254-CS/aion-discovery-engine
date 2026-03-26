@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -19,6 +19,7 @@ export default function Dashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const query = (location.state as any)?.query || "What is the effect of microplastics on coral reef microbiomes?";
+  const dataset = (location.state as any)?.dataset as { name: string; size: number; data: string; type: string } | null;
 
   const [stages, setStages] = useState<ResearchStage[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -107,7 +108,24 @@ export default function Dashboard() {
                 <p className="text-sm text-foreground leading-relaxed font-light">{query}</p>
               </motion.div>
 
-              {/* Progress */}
+              {/* Dataset indicator */}
+              {dataset && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12 }}
+                  className="mb-6 glass-panel p-3 flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                    <FileSpreadsheet className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Dataset</p>
+                    <p className="text-xs text-foreground truncate">{dataset.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
+                  </div>
+                </motion.div>
+              )}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
