@@ -104,7 +104,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "refine":
-        model = "google/gemini-2.5-flash";
+        model = "gemini-2.0-flash";
         maxTokens = 16384;
         systemPrompt = `You are a research paper refinement agent. Given a completed paper and a user request, modify the specific section or aspect requested. Return the COMPLETE updated paper in the same JSON format. Maintain or increase the length and detail of all sections. The JSON must include ALL fields: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.`;
         userPrompt = `Current paper: ${JSON.stringify(context?.paper)}\nUser request: "${query}"`;
