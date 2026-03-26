@@ -16,6 +16,7 @@ import DatasetPreview from "@/components/DatasetPreview";
 import HypothesisSimulation from "@/components/HypothesisSimulation";
 import DebateMode from "@/components/DebateMode";
 import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
+import LiteratureMonitor from "@/components/LiteratureMonitor";
 import { runResearchPipeline, CompetingHyp, Warning, StatResult } from "@/lib/research-pipeline";
 import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib/research-types";
 
@@ -274,15 +275,18 @@ export default function Dashboard() {
             </span>
             <span className="text-sm font-medium text-foreground">Research Dashboard</span>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/")}
-            className="ml-auto p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            title="Home"
-          >
-            <Home className="h-4 w-4" />
-          </motion.button>
+          <div className="ml-auto flex items-center gap-2">
+            <LiteratureMonitor query={query} />
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/")}
+              className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              title="Home"
+            >
+              <Home className="h-4 w-4" />
+            </motion.button>
+          </div>
         </div>
 
         {/* Content grid */}

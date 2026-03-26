@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import AionShowcase from "@/components/landing/AionShowcase";
+import LiteratureMonitor from "@/components/LiteratureMonitor";
 import { useNavigate } from "react-router-dom";
 
 const exampleQueries = [
@@ -97,6 +98,7 @@ export default function LandingPage() {
             <span className="text-base font-bold tracking-tight text-foreground font-display">AION</span>
           </div>
           <div className="flex items-center gap-4">
+            <LiteratureMonitor />
             <button
               onClick={() => navigate("/leaderboard")}
               className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 px-3 py-1.5 rounded-lg hover:bg-secondary/60"
