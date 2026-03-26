@@ -22,7 +22,7 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } },
 };
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
 
 export default function LandingPage() {
@@ -39,7 +39,7 @@ export default function LandingPage() {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 100MB.`);
       return;
     }
 
@@ -210,7 +210,7 @@ export default function LandingPage() {
                     <Upload className="h-4 w-4 group-hover:text-primary transition-colors duration-300" />
                     <span className="hidden sm:inline">{uploadedFile ? "Change file" : "Upload dataset"}</span>
                   </button>
-                  <span className="text-[9px] text-muted-foreground/30 hidden sm:inline">CSV, JSON, TSV · Max 10MB</span>
+                  <span className="text-[9px] text-muted-foreground/30 hidden sm:inline">CSV, JSON, TSV · Max 100MB</span>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
