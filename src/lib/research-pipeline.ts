@@ -226,7 +226,10 @@ export async function runResearchPipeline(
     await delay(500);
 
     const selectedHyp = rawHyps[0] || hypotheses[0];
-    const expResult = await callAgent("experiment", query, { hypothesis: selectedHyp });
+    const expResult = await callAgent("experiment", query, {
+      hypothesis: selectedHyp,
+      ...(datasetContext ? { dataset: datasetContext } : {}),
+    });
     if (signal.aborted) return;
     researchContext.experiment = expResult;
 
