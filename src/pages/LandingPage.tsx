@@ -22,7 +22,7 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } },
 };
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
 
 export default function LandingPage() {

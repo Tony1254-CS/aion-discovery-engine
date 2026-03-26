@@ -56,7 +56,12 @@ async function callAgent(stage: string, query: string, context?: any) {
   return data.result;
 }
 
-export async function runResearchPipeline(query: string, onUpdate: UpdateCb, signal: AbortSignal) {
+export async function runResearchPipeline(
+  query: string,
+  onUpdate: UpdateCb,
+  signal: AbortSignal,
+  dataset?: { name: string; size: number; data: string; type: string } | null,
+) {
   const stages: ResearchStage[] = [
     { id: "literature", label: "Reading Literature", status: "pending" },
     { id: "gaps", label: "Identifying Gaps", status: "pending" },
