@@ -84,6 +84,7 @@ export async function runResearchPipeline(
   let noveltyDifference = "";
   let logId = 0;
   let researchContext: any = {};
+  let researchGaps: any[] = [];
 
   const addLog = (text: string, type: LogEntry["type"] = "info") => {
     logs.push({ id: logId++, time: new Date().toLocaleTimeString(), text, type });
