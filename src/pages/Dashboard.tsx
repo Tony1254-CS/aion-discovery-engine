@@ -61,6 +61,7 @@ export default function Dashboard() {
       if (data.noveltyScore) setNoveltyScore(data.noveltyScore);
       if (data.closestWork) setClosestWork(data.closestWork);
       if (data.noveltyDifference) setNoveltyDiff(data.noveltyDifference);
+      if (data.researchGaps) setResearchGaps(data.researchGaps);
     }, abortRef.current.signal, dataset);
     return () => abortRef.current.abort();
   }, [query]);
