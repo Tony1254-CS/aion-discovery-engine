@@ -100,7 +100,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
   "conclusion": "...",
   "references": [{"text": "Author, A. B., & Author, C. D. (Year). Title. Journal, Vol(Issue), Pages. https://doi.org/10.XXXX/XXXXX"}]
 }`;
-        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper NOW. Every section must meet the EXACT paragraph counts specified. Do NOT truncate, abbreviate, or summarize any section. Write FULL paragraphs with complete sentences. The paper must be 6000+ words total. This is your PRIMARY task — produce the entire paper in one response.`;
+        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper NOW. Every section must meet the EXACT paragraph counts specified. Do NOT truncate, abbreviate, or summarize any section. Write FULL paragraphs with complete sentences. The paper must be 6000+ words total. IMPORTANT: All references MUST cite real, existing published papers with genuine DOIs that resolve on doi.org. Do NOT invent or fabricate DOIs.`;
         break;
 
       case "refine":
