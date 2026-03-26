@@ -289,11 +289,32 @@ export async function runResearchPipeline(
 
     addLog("Research paper complete! 🎉", "success");
     setStage("paper", "done");
+    emit({ paperReady: true, paper: paperResult });
+
+    // Stage 7: Research Gaps & Next Steps
+    setStage("next-steps", "active");
+    addLog("Analyzing research gaps and next steps…", "info");
+    emit({ paperReady: true, paper: paperResult });
+
+    try {
+      const gapsAnalysis = await callAgent("research-gaps", query, {
+        paper: { title: paperResult.title, abstract: paperResult.abstract, results: paperResult.results, discussion: paperResult.discussion },
+        competingHypotheses: competingHyps,
+        warnings,
+      });
+      if (signal.aborted) return;
+      researchGaps = gapsAnalysis.gaps || [];
+      addLog(`Identified ${researchGaps.length} research gaps with actionable suggestions`, "success");
+    } catch (e: any) {
+      addLog(`Gap analysis skipped: ${e.message}`, "info");
+    }
+
+    setStage("next-steps", "done");
     onUpdate({
       stages: [...stages], logs: [...logs], nodes: [...nodes], edges: [...edges],
       hypotheses: [...hypotheses], paperReady: true, paper: paperResult,
       competingHypotheses: [...competingHyps], warnings: [...warnings],
-      stats, noveltyScore, closestWork, noveltyDifference,
+      stats, noveltyScore, closestWork, noveltyDifference, researchGaps,
     });
 
   } catch (err: any) {
