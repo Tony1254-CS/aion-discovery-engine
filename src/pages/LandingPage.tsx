@@ -145,8 +145,7 @@ export default function LandingPage() {
               variants={stagger.item}
               className="text-muted-foreground text-[clamp(0.95rem,2.5vw,1.15rem)] max-w-md mx-auto leading-relaxed font-light"
             >
-              AION autonomously reviews literature, generates hypotheses,
-              runs experiments, and writes research papers.
+              Executable Research Pipeline with Automated Validation & Next‑Step Suggestions
             </motion.p>
           </motion.div>
 
