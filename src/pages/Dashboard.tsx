@@ -224,7 +224,7 @@ export default function Dashboard() {
                       exit={{ opacity: 0, y: 15 }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff } })}
+                      onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
                       className="aion-glow-button w-full flex items-center justify-center gap-2.5 text-sm px-4 py-3.5"
                     >
                       <FileText className="h-4 w-4" />
