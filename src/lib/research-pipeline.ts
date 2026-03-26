@@ -64,7 +64,7 @@ export async function runResearchPipeline(query: string, onUpdate: UpdateCb, sig
 
     const papers = litResult.papers || [];
     papers.forEach((p: any, i: number) => {
-      addNode(`paper-${i}`, p.title, "paper");
+      addNode(`paper-${i}`, p.title, "paper", p.summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
       addLog(`Found: "${p.title}" (${p.year})`, "info");
     });
