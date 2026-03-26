@@ -177,6 +177,13 @@ Respond in valid JSON:
         userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
         break;
 
+      case "debate":
+        model = "google/gemini-3-flash-preview";
+        maxTokens = 2048;
+        systemPrompt = context?.systemPrompt || "You are a scientific debater.";
+        userPrompt = (context?.history || []).map((m: any) => m.content).join("\n\n") + `\n\nNow respond in your role. Research question: "${query}"`;
+        break;
+
       default:
         throw new Error(`Unknown stage: ${stage}`);
     }
