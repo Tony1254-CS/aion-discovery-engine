@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, ArrowLeft, Sparkles } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, ArrowLeft, Home, Sparkles } from "lucide-react";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
