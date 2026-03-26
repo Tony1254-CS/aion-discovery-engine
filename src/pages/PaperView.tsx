@@ -89,8 +89,8 @@ export default function PaperView() {
               <InteractiveFigures />
             </div>
           </Section>
+          <Section title="4. Discussion">{discussion}</Section>
 
-          {/* Limitations auto-generated */}
           <Section title="5. Limitations">
             <div className="space-y-2 text-xs text-foreground/80 leading-relaxed">
               <p>This study was conducted using AI-generated simulated data and should be considered exploratory. The following limitations apply:</p>
