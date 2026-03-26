@@ -98,6 +98,7 @@ export default function LandingPage() {
             <span className="text-base font-bold tracking-tight text-foreground font-display">AION</span>
           </div>
           <div className="flex items-center gap-4">
+            <LiteratureMonitor />
             <button
               onClick={() => navigate("/leaderboard")}
               className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 px-3 py-1.5 rounded-lg hover:bg-secondary/60"
