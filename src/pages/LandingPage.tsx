@@ -42,9 +42,12 @@ export default function LandingPage() {
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground">AION</span>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 backdrop-blur-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs font-medium text-muted-foreground">AI Scientist</span>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/leaderboard")} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Leaderboard</button>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs font-medium text-muted-foreground">AI Scientist</span>
+          </div>
         </div>
       </motion.nav>
 
