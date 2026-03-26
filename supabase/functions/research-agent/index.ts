@@ -20,7 +20,7 @@ serve(async (req) => {
 
     switch (stage) {
       case "literature":
-        systemPrompt = `You are a scientific literature review agent. Given a research question, identify 8-12 relevant papers that would exist in the literature. For each paper, provide: title, authors (abbreviated), year, journal, DOI (generate realistic DOI like 10.1038/s41586-024-XXXXX), and a 3-4 sentence summary of key findings including methodology and sample size. Also identify 5 key concepts/themes. Respond in valid JSON:
+        systemPrompt = `You are a scientific literature review agent. Given a research question, identify 8-12 REAL, PUBLISHED papers from the actual scientific literature. You MUST use genuinely existing papers with their correct, real DOIs. Use well-known, highly cited papers in the relevant field. Do NOT fabricate or invent DOIs — every DOI must resolve to a real paper on doi.org. If you are unsure of a DOI, omit the doi field for that paper rather than guessing. For each paper provide: title (exact real title), authors (abbreviated), year, journal, doi (REAL existing DOI like 10.1038/s41586-023-06185-3 or 10.1126/science.abc1234 — must be genuine), and a 3-4 sentence summary. Also identify 5 key concepts/themes. Respond in valid JSON:
 {
   "papers": [{"title": "...", "authors": "...", "year": 2024, "journal": "...", "doi": "10.1038/...", "summary": "..."}],
   "concepts": ["concept1", "concept2", "concept3", "concept4", "concept5"],
@@ -78,7 +78,7 @@ MANDATORY SECTION LENGTHS (violation = failure):
 - "results": EXACTLY 6 paragraphs: (1) Descriptive Statistics, (2) Primary Hypothesis Test, (3) Secondary Analyses, (4) Subgroup Analyses, (5) Sensitivity/Robustness Checks, (6) Summary of Effect Sizes. Include exact p-values, CIs, effect sizes in EVERY paragraph.
 - "discussion": EXACTLY 7 paragraphs: (1) Summary of Findings, (2) Comparison with Prior Work, (3) Theoretical Implications, (4) Practical Implications, (5) Strengths, (6) Limitations, (7) Future Directions. Each 120-160 words.
 - "conclusion": EXACTLY 4 paragraphs summarizing contributions, implications, recommendations, future work. Each 100-140 words.
-- "references": EXACTLY 20-25 references in APA 7th format with realistic DOIs (https://doi.org/10.XXXX/XXXXX)
+- "references": EXACTLY 20-25 references in APA 7th format. CRITICAL: Use ONLY real, genuinely existing published papers with their correct, verifiable DOIs that resolve on https://doi.org/. Do NOT fabricate or invent DOIs. Use well-known, highly cited papers from Nature, Science, PNAS, Lancet, JAMA, PLoS ONE, Psychological Bulletin, etc. If you are unsure of a DOI, provide the reference WITHOUT a DOI rather than inventing one.
 
 CRITICAL RULES:
 1. TOTAL PAPER MUST EXCEED 6000 WORDS. Count carefully.
@@ -86,7 +86,7 @@ CRITICAL RULES:
 3. Do NOT use markdown formatting — plain text only.
 4. Every claim must cite [Author, Year].
 5. Results must include specific numbers: p-values, effect sizes, confidence intervals, sample sizes.
-6. References must have realistic DOI links.
+6. References MUST cite real papers with real DOIs — never fabricate a DOI.
 
 Respond ONLY with valid JSON (no markdown, no code blocks):
 {
@@ -100,7 +100,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
   "conclusion": "...",
   "references": [{"text": "Author, A. B., & Author, C. D. (Year). Title. Journal, Vol(Issue), Pages. https://doi.org/10.XXXX/XXXXX"}]
 }`;
-        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper NOW. Every section must meet the EXACT paragraph counts specified. Do NOT truncate, abbreviate, or summarize any section. Write FULL paragraphs with complete sentences. The paper must be 6000+ words total. This is your PRIMARY task — produce the entire paper in one response.`;
+        userPrompt = `Research context: ${JSON.stringify(context)}\n\nResearch question: "${query}"\n\nWrite the COMPLETE paper NOW. Every section must meet the EXACT paragraph counts specified. Do NOT truncate, abbreviate, or summarize any section. Write FULL paragraphs with complete sentences. The paper must be 6000+ words total. IMPORTANT: All references MUST cite real, existing published papers with genuine DOIs that resolve on doi.org. Do NOT invent or fabricate DOIs.`;
         break;
 
       case "refine":

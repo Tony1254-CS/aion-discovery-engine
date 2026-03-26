@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles, FlaskConical, Swords, BarChart3, Bell, X } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
 import PaperPDFExporter from "@/components/PaperPDFExporter";
 import InteractiveFigures from "@/components/InteractiveFigures";
 import ResearchGaps from "@/components/ResearchGaps";
+import HypothesisSimulation from "@/components/HypothesisSimulation";
+import DebateMode from "@/components/DebateMode";
+import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
+import LiteratureMonitor from "@/components/LiteratureMonitor";
 import { supabase } from "@/integrations/supabase/client";
 
 const sectionVariants = {
@@ -18,6 +22,13 @@ const sectionVariants = {
   }),
 };
 
+const toolItems = [
+  { id: "simulation", icon: FlaskConical, label: "Power Simulation", color: "from-violet-500 to-purple-600", description: "Monte Carlo power analysis" },
+  { id: "debate", icon: Swords, label: "AI Debate", color: "from-amber-500 to-orange-600", description: "Hypothesis stress-testing" },
+  { id: "meta", icon: BarChart3, label: "Meta-Analysis", color: "from-emerald-500 to-teal-600", description: "Synthesize multiple studies" },
+  { id: "literature", icon: Bell, label: "Literature Alerts", color: "from-sky-500 to-blue-600", description: "Track new papers" },
+];
+
 export default function PaperView() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,6 +37,10 @@ export default function PaperView() {
   const [paper, setPaper] = useState<any>(state?.paper);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
+
+  const hypotheses = state?.hypotheses || [];
+  const firstHypothesis = hypotheses[0] || { title: paper?.title || query, description: "" };
 
   const submitToLeaderboard = async () => {
     if (!paper) return;
@@ -54,7 +69,6 @@ export default function PaperView() {
   const references = paper?.references || [];
   const researchGaps = state?.researchGaps || [];
 
-  // Build sections dynamically
   const sections: { title: string; content: string; showFigures?: boolean }[] = [
     { title: "Abstract", content: abstract },
     { title: "1. Introduction", content: introduction },
@@ -76,7 +90,6 @@ export default function PaperView() {
   const limIdx = sections.length;
   const refIdx = limIdx + 1;
 
-  // Get figure context from paper state
   const figureContext = {
     xLabel: state?.stats?.testType?.includes("Correlation") ? "Independent Variable" : "Group",
     yLabel: "Dependent Variable",
@@ -135,11 +148,101 @@ export default function PaperView() {
         </div>
       </motion.div>
 
+      {/* Floating Advanced Tools Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.4, duration: 0.5, ease: [0.25, 0.4, 0, 1] }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+      >
+        <div className="flex items-center gap-2 p-2 rounded-2xl bg-[hsl(var(--aion-surface)/0.85)] backdrop-blur-2xl border border-border/50 shadow-2xl shadow-black/20">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 hidden sm:block">Tools</span>
+          <div className="w-px h-6 bg-border/40 hidden sm:block" />
+          {toolItems.map((tool) => {
+            const Icon = tool.icon;
+            const isActive = activeTool === tool.id;
+            return (
+              <motion.button
+                key={tool.id}
+                whileHover={{ scale: 1.08, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setActiveTool(isActive ? null : tool.id)}
+                className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 ${
+                  isActive
+                    ? `bg-gradient-to-r ${tool.color} text-white shadow-lg`
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{tool.label}</span>
+                {/* Pulse dot for new feature */}
+                {!isActive && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-primary to-[hsl(var(--aion-gradient-end))] animate-pulse shadow-sm shadow-primary/50" />
+                )}
+                {/* Tooltip on mobile */}
+                <span className="sm:hidden absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-foreground text-background text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  {tool.label}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Active Tool Panel */}
+      <AnimatePresence>
+        {activeTool && (
+          <motion.div
+            key={activeTool}
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed top-16 right-0 bottom-0 w-full sm:w-[480px] z-40 bg-[hsl(var(--aion-surface)/0.92)] backdrop-blur-2xl border-l border-border/40 overflow-y-auto shadow-2xl"
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 bg-[hsl(var(--aion-surface)/0.9)] backdrop-blur-xl border-b border-border/30">
+              <span className="text-sm font-bold text-foreground">
+                {toolItems.find(t => t.id === activeTool)?.label}
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setActiveTool(null)}
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </motion.button>
+            </div>
+            <div className="p-4">
+              {activeTool === "simulation" && (
+                <HypothesisSimulation
+                  hypothesis={firstHypothesis}
+                  onClose={() => setActiveTool(null)}
+                />
+              )}
+              {activeTool === "debate" && (
+                <DebateMode
+                  hypothesis={firstHypothesis}
+                  query={query}
+                  onClose={() => setActiveTool(null)}
+                />
+              )}
+              {activeTool === "meta" && (
+                <MetaAnalysisBuilder />
+              )}
+              {activeTool === "literature" && (
+                <LiteratureMonitor query={query} />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.article
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto px-4 py-12 relative z-10"
+        className="max-w-4xl mx-auto px-4 py-12 pb-28 relative z-10"
       >
         <div className="glass-panel-hero p-8 sm:p-12">
           {/* Badges */}
@@ -147,7 +250,7 @@ export default function PaperView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center gap-2 mb-5"
+            className="flex items-center gap-2 mb-5 flex-wrap"
           >
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary glow-ring">
               <Award className="h-3 w-3" />
@@ -176,6 +279,41 @@ export default function PaperView() {
             Generated by AION — Autonomous AI Scientist
           </motion.p>
           <p className="text-xs text-muted-foreground/50 mb-8">Research query: "{query}"</p>
+
+          {/* Highlighted Advanced Tools CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-8 p-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-transparent to-[hsl(var(--aion-gradient-end)/0.05)]"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-xs font-bold text-foreground uppercase tracking-wider">Advanced Research Tools</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary animate-pulse">NEW</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {toolItems.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <motion.button
+                    key={tool.id}
+                    whileHover={{ scale: 1.03, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setActiveTool(tool.id)}
+                    className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-muted/50 hover:bg-muted border border-transparent hover:border-border/50 transition-all group"
+                  >
+                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow`}>
+                      <Icon className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-[10px] font-semibold text-foreground">{tool.label}</span>
+                    <span className="text-[9px] text-muted-foreground leading-tight text-center">{tool.description}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+
           <hr className="border-border/30 mb-8" />
 
           {/* Dynamic sections */}
@@ -215,7 +353,7 @@ export default function PaperView() {
             </Section>
           </motion.div>
 
-          {/* Research Gaps & Next Steps - shown AFTER the full paper */}
+          {/* Research Gaps & Next Steps */}
           {researchGaps.length > 0 && (
             <motion.div custom={limIdx + 1} initial="hidden" animate="visible" variants={sectionVariants}>
               <div className="mt-6 pt-8 border-t border-border/30">
