@@ -155,7 +155,7 @@ export default function PaperView() {
         transition={{ delay: 0.4, duration: 0.5, ease: [0.25, 0.4, 0, 1] }}
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
       >
-        <div className="flex items-center gap-2 p-2 rounded-2xl bg-[hsl(var(--aion-surface)/0.85)] backdrop-blur-2xl border border-border/50 shadow-2xl shadow-black/20">
+        <div className="flex items-center gap-2 p-2 rounded-2xl bg-[hsl(var(--aion-surface)/0.85)] backdrop-blur-2xl border border-border/50 shadow-2xl shadow-black/20 mr-20">
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 hidden sm:block">Tools</span>
           <div className="w-px h-6 bg-border/40 hidden sm:block" />
           {toolItems.map((tool) => {
