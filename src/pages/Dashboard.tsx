@@ -43,6 +43,9 @@ export default function Dashboard() {
   const [selectedCompeting, setSelectedCompeting] = useState<number | undefined>();
   const [autoMode, setAutoMode] = useState(true);
   const [researchGaps, setResearchGaps] = useState<any[]>([]);
+  const [showSimulation, setShowSimulation] = useState(false);
+  const [showDebate, setShowDebate] = useState(false);
+  const [showMetaAnalysis, setShowMetaAnalysis] = useState(false);
   const abortRef = useRef(new AbortController());
 
   const currentStage = stages.find(s => s.status === "active")?.id;
