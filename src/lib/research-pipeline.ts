@@ -181,7 +181,7 @@ export async function runResearchPipeline(
         edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
       }
     });
-    addLog(`Indexed ${papers.length} papers, identified ${(litResult.concepts || []).length} key concepts`, "success");
+    addLog(`Indexed ${papers.length} papers, identified ${concepts.length} key concepts`, "success");
     setStage("literature", "done", `${papers.length} papers`);
 
     // Add transparency warning only if no real dataset
