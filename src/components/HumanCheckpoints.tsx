@@ -100,7 +100,7 @@ export default function HumanCheckpoints({
                           : "border-transparent hover:bg-muted/50 text-muted-foreground"
                       }`}
                     >
-                      <span className="font-medium">{h.type.toUpperCase()}</span>: {h.title}
+                      <span className="font-medium">{(h.type || "hyp").toUpperCase()}</span>: {h.title || "Untitled"}
                     </button>
                   ))}
                 </div>

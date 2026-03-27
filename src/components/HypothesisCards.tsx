@@ -9,14 +9,14 @@ interface Props {
 }
 
 export default function HypothesisCards({ hypotheses, selected, onSelect }: Props) {
-  if (hypotheses.length === 0) return null;
+  if (!hypotheses || hypotheses.length === 0) return null;
 
   return (
     <div className="space-y-3">
       <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-semibold">
         Generated Hypotheses
       </h3>
-      {hypotheses.map((h, i) => {
+      {hypotheses.filter(Boolean).map((h, i) => {
         const isSelected = selected === h.id;
         return (
           <motion.button
@@ -39,17 +39,17 @@ export default function HypothesisCards({ hypotheses, selected, onSelect }: Prop
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-foreground truncate">{h.title}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{h.title || "Untitled Hypothesis"}</p>
                   <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${isSelected ? "text-primary rotate-90" : "text-muted-foreground/30"}`} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{h.description}</p>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{h.description || ""}</p>
                 {isSelected && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="text-xs text-primary/80 mt-2.5 pt-2.5 border-t border-border/50 leading-relaxed"
                   >
-                    <span className="font-semibold">Approach:</span> {h.approach}
+                    <span className="font-semibold">Approach:</span> {h.approach || "Not specified"}
                   </motion.p>
                 )}
               </div>

@@ -18,13 +18,19 @@ interface Props {
 export default function StatisticalOutput({ stats }: Props) {
   if (!stats) return null;
 
-  const isSignificant = stats.pValue < 0.05;
+  const sampleSize = stats.sampleSize ?? 0;
+  const effectSize = stats.effectSize ?? 0;
+  const pValue = stats.pValue ?? 1;
+  const ci = Array.isArray(stats.confidenceInterval) && stats.confidenceInterval.length === 2
+    ? stats.confidenceInterval
+    : [effectSize - 0.15, effectSize + 0.15];
+  const isSignificant = pValue < 0.05;
 
   const cards = [
-    { icon: Hash, label: "Sample Size", value: `n = ${stats.sampleSize.toLocaleString()}`, sub: stats.testType },
-    { icon: TrendingUp, label: "Effect Size", value: `${stats.effectSizeLabel} = ${stats.effectSize.toFixed(3)}`, sub: stats.effectSize > 0.8 ? "Large" : stats.effectSize > 0.5 ? "Medium" : "Small" },
-    { icon: Target, label: "95% CI", value: `[${stats.confidenceInterval[0].toFixed(3)}, ${stats.confidenceInterval[1].toFixed(3)}]`, sub: "Confidence Interval" },
-    { icon: BarChart3, label: "p-value", value: stats.pValue < 0.001 ? "< .001" : `= ${stats.pValue.toFixed(4)}`, sub: isSignificant ? "Statistically significant" : "Not significant" },
+    { icon: Hash, label: "Sample Size", value: `n = ${sampleSize.toLocaleString()}`, sub: stats.testType || "Test" },
+    { icon: TrendingUp, label: "Effect Size", value: `${stats.effectSizeLabel || "d"} = ${effectSize.toFixed(3)}`, sub: effectSize > 0.8 ? "Large" : effectSize > 0.5 ? "Medium" : "Small" },
+    { icon: Target, label: "95% CI", value: `[${(ci[0] ?? 0).toFixed(3)}, ${(ci[1] ?? 0).toFixed(3)}]`, sub: "Confidence Interval" },
+    { icon: BarChart3, label: "p-value", value: pValue < 0.001 ? "< .001" : `= ${pValue.toFixed(4)}`, sub: isSignificant ? "Statistically significant" : "Not significant" },
   ];
 
   return (
@@ -59,7 +65,7 @@ export default function StatisticalOutput({ stats }: Props) {
 
       {/* Key Finding */}
       <div className={`rounded-xl p-3 border ${isSignificant ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"}`}>
-        <p className="text-xs font-medium text-foreground">{stats.keyFinding}</p>
+        <p className="text-xs font-medium text-foreground">{typeof stats.keyFinding === "string" ? stats.keyFinding : "Results generated."}</p>
         <div className="flex items-center gap-2 mt-1.5">
           <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isSignificant ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"}`}>
             {isSignificant ? "✓ Significant" : "⚠ Not significant"}

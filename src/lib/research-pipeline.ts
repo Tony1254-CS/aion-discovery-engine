@@ -163,18 +163,25 @@ export async function runResearchPipeline(
     if (signal.aborted) return;
     researchContext.literature = litResult;
 
-    const papers = litResult.papers || [];
-    papers.forEach((p: any, i: number) => {
-      addNode(`paper-${i}`, p.title, "paper", p.summary);
+    const papers = Array.isArray(litResult.papers) ? litResult.papers : [];
+    papers.filter(Boolean).forEach((p: any, i: number) => {
+      const title = typeof p === "string" ? p : (p.title || `Paper ${i + 1}`);
+      const year = p?.year || "";
+      const summary = typeof p?.summary === "string" ? p.summary : typeof p?.abstract === "string" ? p.abstract : undefined;
+      addNode(`paper-${i}`, title, "paper", summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
-      addLog(`Found: "${p.title}" (${p.year})`, "info");
+      addLog(`Found: "${title}"${year ? ` (${year})` : ""}`, "info");
     });
-    (litResult.concepts || []).forEach((c: string, i: number) => {
-      addNode(`concept-${i}`, c, "concept");
-      edges.push({ from: `paper-${i % papers.length}`, to: `concept-${i}` });
-      edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
+    const concepts = Array.isArray(litResult.concepts) ? litResult.concepts : [];
+    concepts.filter(Boolean).forEach((c: any, i: number) => {
+      const label = typeof c === "string" ? c : (c.name || c.title || `Concept ${i + 1}`);
+      addNode(`concept-${i}`, label, "concept");
+      if (papers.length > 0) {
+        edges.push({ from: `paper-${i % papers.length}`, to: `concept-${i}` });
+        edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
+      }
     });
-    addLog(`Indexed ${papers.length} papers, identified ${(litResult.concepts || []).length} key concepts`, "success");
+    addLog(`Indexed ${papers.length} papers, identified ${concepts.length} key concepts`, "success");
     setStage("literature", "done", `${papers.length} papers`);
 
     // Add transparency warning only if no real dataset
@@ -196,8 +203,10 @@ export async function runResearchPipeline(
     if (signal.aborted) return;
     researchContext.gaps = gapsResult.gaps;
 
-    (gapsResult.gaps || []).forEach((g: any, i: number) => {
-      addLog(`Gap ${i + 1}: ${g.title}`, "info");
+    const gaps = Array.isArray(gapsResult.gaps) ? gapsResult.gaps : [];
+    gaps.filter(Boolean).forEach((g: any, i: number) => {
+      const gTitle = typeof g === "string" ? g : (g.title || `Gap ${i + 1}`);
+      addLog(`Gap ${i + 1}: ${gTitle}`, "info");
     });
     addLog(`Identified ${(gapsResult.gaps || []).length} research gaps`, "success");
     setStage("gaps", "done", `${(gapsResult.gaps || []).length} gaps`);
@@ -211,28 +220,33 @@ export async function runResearchPipeline(
     const hypResult = await callAgent("competing-hypotheses", query, { gaps: gapsResult.gaps, synthesis: litResult.synthesis });
     if (signal.aborted) return;
 
-    const rawHyps = hypResult.hypotheses || [];
+    const rawHyps = Array.isArray(hypResult.hypotheses) ? hypResult.hypotheses.filter(Boolean) : [];
     rawHyps.forEach((h: any, i: number) => {
-      hypotheses.push({ id: i + 1, title: h.title, description: h.description, predictedOutcome: h.predictedOutcome, approach: h.approach });
+      const hTitle = typeof h.title === "string" ? h.title : `Hypothesis ${i + 1}`;
+      const hDesc = typeof h.description === "string" ? h.description : "";
+      const hOutcome = typeof h.predictedOutcome === "string" ? h.predictedOutcome : "";
+      const hApproach = typeof h.approach === "string" ? h.approach : "";
+      hypotheses.push({ id: i + 1, title: hTitle, description: hDesc, predictedOutcome: hOutcome, approach: hApproach });
       competingHyps.push({
         type: h.type || (i === 0 ? "primary" : i === 1 ? "alternative" : "null"),
-        title: h.title,
-        description: h.description,
-        predictedOutcome: h.predictedOutcome,
-        approach: h.approach,
-        pValue: h.pValue ?? 0.05,
-        effectSize: h.effectSize ?? 0.5,
+        title: hTitle,
+        description: hDesc,
+        predictedOutcome: hOutcome,
+        approach: hApproach,
+        pValue: typeof h.pValue === "number" ? h.pValue : 0.05,
+        effectSize: typeof h.effectSize === "number" ? h.effectSize : 0.5,
         verdict: h.verdict || "weak",
       });
-      addNode(`hyp-${i}`, h.title, "hypothesis", h.description);
-      edges.push({ from: `concept-${i % (litResult.concepts?.length || 1)}`, to: `hyp-${i}` });
-      addLog(`${(h.type || "Hypothesis").toUpperCase()}: ${h.title}`, "info");
+      addNode(`hyp-${i}`, hTitle, "hypothesis", hDesc);
+      edges.push({ from: `concept-${i % Math.max(concepts.length, 1)}`, to: `hyp-${i}` });
+      addLog(`${(h.type || "Hypothesis").toUpperCase()}: ${hTitle}`, "info");
     });
 
     // Novelty
-    noveltyScore = hypResult.noveltyScore ?? 0.65;
-    closestWork = hypResult.closestWork || "";
-    noveltyDifference = hypResult.noveltyDifference || "";
+    const rawNovelty = typeof hypResult.noveltyScore === "number" ? hypResult.noveltyScore : 0.65;
+    noveltyScore = rawNovelty > 1 ? rawNovelty / 100 : rawNovelty; // normalize percentage to 0-1
+    closestWork = typeof hypResult.closestWork === "string" ? hypResult.closestWork : "";
+    noveltyDifference = typeof hypResult.noveltyDifference === "string" ? hypResult.noveltyDifference : "";
     if (noveltyScore > 0) {
       addLog(`Novelty Score: ${Math.round(noveltyScore * 100)}%`, "success");
     }
