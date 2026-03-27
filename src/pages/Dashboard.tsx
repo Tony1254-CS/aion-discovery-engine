@@ -55,6 +55,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     abortRef.current = new AbortController();
+    setPipelineError(null);
+
     runResearchPipeline(query, (data) => {
       setStages(data.stages);
       setLogs(data.logs);
@@ -70,7 +72,10 @@ export default function Dashboard() {
       if (data.closestWork) setClosestWork(data.closestWork);
       if (data.noveltyDifference) setNoveltyDiff(data.noveltyDifference);
       if (data.researchGaps) setResearchGaps(data.researchGaps);
-    }, abortRef.current.signal, dataset);
+    }, abortRef.current.signal, dataset).catch((error) => {
+      setPipelineError(error instanceof Error ? error.message : "Research pipeline failed");
+    });
+
     return () => abortRef.current.abort();
   }, [query]);
 
