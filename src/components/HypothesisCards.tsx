@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function HypothesisCards({ hypotheses, selected, onSelect }: Props) {
-  if (hypotheses.length === 0) return null;
+  if (!hypotheses || hypotheses.length === 0) return null;
 
   return (
     <div className="space-y-3">
