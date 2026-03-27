@@ -38,8 +38,10 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
         Competing Hypotheses
       </h3>
 
-      {hypotheses.map((h, i) => {
-        const v = verdictConfig[h.verdict];
+      {hypotheses.filter(Boolean).map((h, i) => {
+        const safeVerdict = (h.verdict && verdictConfig[h.verdict]) ? h.verdict : "weak";
+        const safeType = (h.type && typeColors[h.type]) ? h.type : "primary";
+        const v = verdictConfig[safeVerdict];
         const VIcon = v.icon;
         const isSelected = selected === i;
 
@@ -57,7 +59,7 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
             }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${typeColors[h.type]} flex items-center justify-center shrink-0`}>
+              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${typeColors[safeType]} flex items-center justify-center shrink-0`}>
                 <span className="text-[10px] font-bold text-white uppercase">{h.type[0]}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -70,8 +72,8 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{h.description}</p>
                 <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[10px] font-mono text-muted-foreground">p = {h.pValue < 0.001 ? "<.001" : h.pValue.toFixed(4)}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground">d = {h.effectSize.toFixed(3)}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">p = {h.pValue != null ? (h.pValue < 0.001 ? "<.001" : h.pValue.toFixed(4)) : "N/A"}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">d = {h.effectSize != null ? h.effectSize.toFixed(3) : "N/A"}</span>
                 </div>
               </div>
             </div>
