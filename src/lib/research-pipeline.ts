@@ -85,6 +85,32 @@ async function callAgent(stage: string, query: string, context?: any) {
   }
 }
 
+async function callLiteratureSearch(query: string) {
+  const { data, error } = await supabase.functions.invoke("literature-search", {
+    body: { query },
+  });
+
+  if (error) throw new Error(error.message || "Literature search failed");
+  return Array.isArray(data?.papers) ? data.papers : [];
+}
+
+function buildReferenceList(papers: any[]) {
+  return papers
+    .filter(Boolean)
+    .slice(0, 20)
+    .map((paper: any) => {
+      const authors = typeof paper?.authors === "string" ? paper.authors : "Unknown author";
+      const year = typeof paper?.date === "string" ? paper.date.slice(0, 4) : "n.d.";
+      const title = typeof paper?.title === "string" ? paper.title : "Untitled";
+      const journal = typeof paper?.source === "string" ? paper.source : "Unknown source";
+      const url = typeof paper?.url === "string" ? paper.url : "";
+
+      return {
+        text: `${authors} (${year}). ${title}. ${journal}.${url ? ` ${url}` : ""}`.trim(),
+      };
+    });
+}
+
 export async function runResearchPipeline(
   query: string,
   onUpdate: UpdateCb,

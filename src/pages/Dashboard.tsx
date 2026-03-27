@@ -255,7 +255,14 @@ export default function Dashboard() {
         </div>
 
         {/* Content grid */}
-        <div className="flex-1 p-3 sm:p-4 grid grid-rows-[1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-3 sm:gap-4 min-h-0">
+        <div className="flex-1 p-3 sm:p-4 grid grid-rows-[auto_1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-3 sm:gap-4 min-h-0">
+          {paperReady && (
+            <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.98 }}
+              onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
+              className="aion-glow-button w-full flex sm:hidden items-center justify-center gap-2 text-sm px-4 py-3">
+              <FileText className="h-4 w-4" /> View Research Paper
+            </motion.button>
+          )}
           <div className="min-h-[200px] sm:min-h-[300px] lg:row-span-1 flex flex-col gap-3 sm:gap-4">
             <KnowledgeGraph nodes={nodes} edges={edges} />
 
