@@ -27,6 +27,7 @@ interface SimilarPaper {
   authors: string;
   relevance: number;
   source: string;
+  url: string;
 }
 
 const safeArr = (v: unknown): string[] =>
