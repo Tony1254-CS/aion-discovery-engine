@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [showSimulation, setShowSimulation] = useState(false);
   const [showDebate, setShowDebate] = useState(false);
   const [showMetaAnalysis, setShowMetaAnalysis] = useState(false);
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
   const abortRef = useRef(new AbortController());
 
   const currentStage = stages.find(s => s.status === "active")?.id;
@@ -54,6 +55,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     abortRef.current = new AbortController();
+    setPipelineError(null);
+
     runResearchPipeline(query, (data) => {
       setStages(data.stages);
       setLogs(data.logs);
@@ -69,7 +72,10 @@ export default function Dashboard() {
       if (data.closestWork) setClosestWork(data.closestWork);
       if (data.noveltyDifference) setNoveltyDiff(data.noveltyDifference);
       if (data.researchGaps) setResearchGaps(data.researchGaps);
-    }, abortRef.current.signal, dataset);
+    }, abortRef.current.signal, dataset).catch((error) => {
+      setPipelineError(error instanceof Error ? error.message : "Research pipeline failed");
+    });
+
     return () => abortRef.current.abort();
   }, [query]);
 
@@ -313,13 +319,33 @@ export default function Dashboard() {
             </AnimatePresence>
           </div>
           <div className="lg:row-span-2 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin space-y-4">
+            {pipelineError && (
+              <div className="glass-panel border border-destructive/30 bg-destructive/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-destructive/80">Pipeline paused</p>
+                    <p className="mt-2 text-sm text-foreground">
+                      {pipelineError.includes("429")
+                        ? "The free AI provider is temporarily rate-limited. The app now waits and retries automatically, but you may still need to try again in a minute if the daily free quota is saturated."
+                        : pipelineError}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/", { state: { query, dataset } })}
+                    className="rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            )}
+
             {competingHyps.length > 0 ? (
               <CompetingHypotheses hypotheses={competingHyps} selected={selectedCompeting} onSelect={setSelectedCompeting} />
             ) : (
               <HypothesisCards hypotheses={hypotheses} selected={selectedHyp} onSelect={setSelectedHyp} />
             )}
 
-            {/* Tool buttons */}
             {competingHyps.length > 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2">
                 <button
