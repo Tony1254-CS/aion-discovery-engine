@@ -91,9 +91,9 @@ const buildFallbackResult = (stage: Stage, query: string, context: any) => {
 const getStageConfig = (stage: Stage, query: string, context: any) => {
   const configs: Record<Stage, { model: string; maxTokens: number; systemPrompt: string; userPrompt: string }> = {
     literature: {
-      model: GOOGLE_BALANCED, maxTokens: 4000,
-      systemPrompt: "You are a scientific literature review agent. Return concise structured JSON with real papers when possible. Never invent DOIs. Required keys: papers (array of {title, authors, year, journal, doi, abstract}), concepts (array of strings), synthesis (string).",
-      userPrompt: `Research question: "${query}"\nReturn 8-10 relevant papers, 5 concepts, and a detailed synthesis.`,
+      model: GOOGLE_BALANCED, maxTokens: 6000,
+      systemPrompt: "You are a scientific literature review agent. Return structured JSON with real, verifiable papers. Never invent DOIs. Required keys: papers (array of {title, authors, year, journal, doi, abstract}), concepts (array of strings), synthesis (string). Include as many real papers as possible (aim for 15-20). The synthesis should be comprehensive (at least 500 words).",
+      userPrompt: `Research question: "${query}"\nReturn 15-20 relevant real papers from the literature, 8 key concepts, and a thorough synthesis paragraph covering the state of knowledge, debates, and evolution of the field.`,
     },
     gaps: {
       model: GOOGLE_FAST, maxTokens: 2000,
@@ -112,12 +112,24 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
     },
     paper: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
-      systemPrompt: "Write a publication-style research paper draft. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references. Be thorough and detailed. Do not invent DOIs.",
-      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed structured draft.`,
+      systemPrompt: `Write a publication-quality research paper. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references.
+
+IMPORTANT LENGTH REQUIREMENTS:
+- abstract: 250-300 words
+- introduction: 800+ words with clear problem statement, significance, and research objectives
+- literatureReview: 1000+ words covering key studies, theoretical frameworks, and gaps
+- methods: 800+ words with detailed methodology, study design, data collection, variables, sampling, and analysis techniques
+- results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
+- discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
+- conclusion: 300+ words
+- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal. DOI if known." Do not invent DOIs or papers.
+
+Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
+      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
     },
     refine: {
-      model: GOOGLE_LONGFORM, maxTokens: 6000,
-      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.",
+      model: GOOGLE_LONGFORM, maxTokens: 8192,
+      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references. Maintain or increase the length of each section. Keep all 15+ references and add more if relevant.",
       userPrompt: `User request: "${query}"\nCurrent paper: ${JSON.stringify(context?.paper)}`,
     },
     "peer-review": {
