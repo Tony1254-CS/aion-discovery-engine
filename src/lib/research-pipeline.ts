@@ -48,7 +48,16 @@ type UpdateCb = (data: {
   researchGaps?: any[];
 }) => void;
 
+let lastCallTime = 0;
+const MIN_CALL_INTERVAL = 4000; // 4s between calls to stay under 20 req/min
+
 async function callAgent(stage: string, query: string, context?: any) {
+  const now = Date.now();
+  const elapsed = now - lastCallTime;
+  if (elapsed < MIN_CALL_INTERVAL) {
+    await delay(MIN_CALL_INTERVAL - elapsed);
+  }
+  lastCallTime = Date.now();
   const { data, error } = await supabase.functions.invoke("research-agent", {
     body: { query, stage, context },
   });
