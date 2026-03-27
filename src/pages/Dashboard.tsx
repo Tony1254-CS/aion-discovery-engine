@@ -239,6 +239,13 @@ export default function Dashboard() {
             <span className="text-xs sm:text-sm font-medium text-foreground">Research Dashboard</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {paperReady && (
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
+                className="aion-glow-button hidden sm:flex items-center gap-2 text-xs px-3 py-2">
+                <FileText className="h-3.5 w-3.5" /> View Paper
+              </motion.button>
+            )}
             <LiteratureMonitor query={query} />
             <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => navigate("/")}
               className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Home">
