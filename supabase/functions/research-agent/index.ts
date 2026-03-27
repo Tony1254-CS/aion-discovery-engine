@@ -202,6 +202,27 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
   }
 }
 
+// Call Hugging Face as 3rd backup — FREE
+async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
+  try {
+    const response = await fetch(HF_API_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: HF_MODEL, messages, max_tokens: Math.min(maxTokens, 4000), temperature: 0.3 }),
+    });
+    if (!response.ok) {
+      const t = await response.text();
+      console.error(`HuggingFace failed (${response.status}): ${t.slice(0, 200)}`);
+      return null;
+    }
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (err) {
+    console.error("HuggingFace error:", err);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -224,7 +245,8 @@ serve(async (req) => {
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GOOGLE_AI_API_KEY && !GROQ_API_KEY) throw new Error("No AI API keys configured");
+    const HUGGINGFACE_API_KEY = Deno.env.get("HUGGINGFACE_API_KEY");
+    if (!GOOGLE_AI_API_KEY && !GROQ_API_KEY && !HUGGINGFACE_API_KEY) throw new Error("No AI API keys configured");
 
     const { model, maxTokens, systemPrompt, userPrompt } = getStageConfig(stage, query, context);
     const messages = [
@@ -235,17 +257,24 @@ serve(async (req) => {
     let aiResult: string | null = null;
     let usedModel = model;
 
-    // Primary: Google AI Studio (FREE, generous limits)
+    // 1st: Google AI Studio (FREE, generous limits)
     if (GOOGLE_AI_API_KEY) {
       aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
       if (aiResult) usedModel = `google/${model}`;
     }
 
-    // Backup: Groq (FREE, lower limits)
+    // 2nd: Groq (FREE, lower limits)
     if (!aiResult && GROQ_API_KEY) {
       console.log("Google AI unavailable, trying Groq backup...");
       aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
       if (aiResult) usedModel = "groq/llama";
+    }
+
+    // 3rd: Hugging Face (FREE)
+    if (!aiResult && HUGGINGFACE_API_KEY) {
+      console.log("Groq unavailable, trying HuggingFace backup...");
+      aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
+      if (aiResult) usedModel = "hf/deepseek-v3";
     }
 
     // Both failed → structured fallback
