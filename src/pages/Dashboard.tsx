@@ -24,6 +24,7 @@ import { ResearchStage, LogEntry, GraphNode, GraphEdge, Hypothesis } from "@/lib
 export default function Dashboard() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const query = (location.state as any)?.query || "What is the effect of microplastics on coral reef microbiomes?";
   const dataset = (location.state as any)?.dataset as { name: string; size: number; data: string; type: string } | null;
 
@@ -36,6 +37,7 @@ export default function Dashboard() {
   const [paperReady, setPaperReady] = useState(false);
   const [paper, setPaper] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [competingHyps, setCompetingHyps] = useState<CompetingHyp[]>([]);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const [stats, setStats] = useState<StatResult | null>(null);
