@@ -170,7 +170,7 @@ export default function PaperView() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 300 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-16 right-0 bottom-0 w-full sm:w-[480px] z-40 bg-[hsl(var(--aion-surface)/0.92)] backdrop-blur-2xl border-l border-border/40 overflow-y-auto shadow-2xl"
+            className="fixed top-16 right-0 bottom-0 w-full sm:w-[480px] z-[55] bg-[hsl(var(--aion-surface)/0.92)] backdrop-blur-2xl border-l border-border/40 overflow-y-auto shadow-2xl"
           >
             <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 bg-[hsl(var(--aion-surface)/0.9)] backdrop-blur-xl border-b border-border/30">
               <span className="text-sm font-bold text-foreground">
