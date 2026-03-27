@@ -239,6 +239,13 @@ export default function Dashboard() {
             <span className="text-xs sm:text-sm font-medium text-foreground">Research Dashboard</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {paperReady && (
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
+                className="aion-glow-button hidden sm:flex items-center gap-2 text-xs px-3 py-2">
+                <FileText className="h-3.5 w-3.5" /> View Paper
+              </motion.button>
+            )}
             <LiteratureMonitor query={query} />
             <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => navigate("/")}
               className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Home">
@@ -248,7 +255,14 @@ export default function Dashboard() {
         </div>
 
         {/* Content grid */}
-        <div className="flex-1 p-3 sm:p-4 grid grid-rows-[1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-3 sm:gap-4 min-h-0">
+        <div className="flex-1 p-3 sm:p-4 grid grid-rows-[auto_1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-3 sm:gap-4 min-h-0">
+          {paperReady && (
+            <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.98 }}
+              onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
+              className="aion-glow-button w-full flex sm:hidden items-center justify-center gap-2 text-sm px-4 py-3">
+              <FileText className="h-4 w-4" /> View Research Paper
+            </motion.button>
+          )}
           <div className="min-h-[200px] sm:min-h-[300px] lg:row-span-1 flex flex-col gap-3 sm:gap-4">
             <KnowledgeGraph nodes={nodes} edges={edges} />
 

@@ -85,6 +85,32 @@ async function callAgent(stage: string, query: string, context?: any) {
   }
 }
 
+async function callLiteratureSearch(query: string) {
+  const { data, error } = await supabase.functions.invoke("literature-search", {
+    body: { query },
+  });
+
+  if (error) throw new Error(error.message || "Literature search failed");
+  return Array.isArray(data?.papers) ? data.papers : [];
+}
+
+function buildReferenceList(papers: any[]) {
+  return papers
+    .filter(Boolean)
+    .slice(0, 20)
+    .map((paper: any) => {
+      const authors = typeof paper?.authors === "string" ? paper.authors : "Unknown author";
+      const year = typeof paper?.date === "string" ? paper.date.slice(0, 4) : "n.d.";
+      const title = typeof paper?.title === "string" ? paper.title : "Untitled";
+      const journal = typeof paper?.source === "string" ? paper.source : "Unknown source";
+      const url = typeof paper?.url === "string" ? paper.url : "";
+
+      return {
+        text: `${authors} (${year}). ${title}. ${journal}.${url ? ` ${url}` : ""}`.trim(),
+      };
+    });
+}
+
 export async function runResearchPipeline(
   query: string,
   onUpdate: UpdateCb,
@@ -159,14 +185,21 @@ export async function runResearchPipeline(
     }
     emit();
 
-    const litResult = await callAgent("literature", query, datasetContext ? { dataset: datasetContext } : undefined);
+    const [litResult, literatureSearchPapers] = await Promise.all([
+      callAgent("literature", query, datasetContext ? { dataset: datasetContext } : undefined),
+      callLiteratureSearch(query).catch(() => []),
+    ]);
     if (signal.aborted) return;
-    researchContext.literature = litResult;
+    const mergedLiteraturePapers = literatureSearchPapers.length > 0 ? literatureSearchPapers : (Array.isArray(litResult.papers) ? litResult.papers : []);
+    researchContext.literature = {
+      ...litResult,
+      papers: mergedLiteraturePapers,
+    };
 
-    const papers = Array.isArray(litResult.papers) ? litResult.papers : [];
+    const papers = mergedLiteraturePapers;
     papers.filter(Boolean).forEach((p: any, i: number) => {
       const title = typeof p === "string" ? p : (p.title || `Paper ${i + 1}`);
-      const year = p?.year || "";
+      const year = p?.year || (typeof p?.date === "string" ? p.date.slice(0, 4) : "");
       const summary = typeof p?.summary === "string" ? p.summary : typeof p?.abstract === "string" ? p.abstract : undefined;
       addNode(`paper-${i}`, title, "paper", summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
@@ -344,9 +377,15 @@ export async function runResearchPipeline(
         results: paperResult.results || researchContext.experiment?.results?.keyFinding || "Results unavailable in the first pass.",
         discussion: paperResult.discussion || "Discussion unavailable in the first pass.",
         conclusion: paperResult.conclusion || "Conclusion unavailable in the first pass.",
-        references: paperResult.references || [],
+        references: Array.isArray(paperResult.references) && paperResult.references.length > 0
+          ? paperResult.references
+          : buildReferenceList(researchContext.literature?.papers || []),
       };
       emit();
+    }
+
+    if (!Array.isArray(paperResult.references) || paperResult.references.length === 0) {
+      paperResult.references = buildReferenceList(researchContext.literature?.papers || []);
     }
 
     // Log paper stats
