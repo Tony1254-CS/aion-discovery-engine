@@ -7,6 +7,7 @@ interface PeerReviewProps {
   paper: any;
   query: string;
   onPaperUpdate: (paper: any) => void;
+  onReviewComplete?: (review: ReviewData) => void;
 }
 
 interface ReviewData {
@@ -17,7 +18,7 @@ interface ReviewData {
   verdict: string;
 }
 
-export default function PeerReview({ paper, query, onPaperUpdate }: PeerReviewProps) {
+export default function PeerReview({ paper, query, onPaperUpdate, onReviewComplete }: PeerReviewProps) {
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function PeerReview({ paper, query, onPaperUpdate }: PeerReviewPr
       });
       if (error) throw error;
       setReview(data?.result);
+      onReviewComplete?.(data?.result);
     } catch (e: any) {
       console.error("Peer review error:", e);
     } finally {

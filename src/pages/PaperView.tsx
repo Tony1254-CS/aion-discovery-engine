@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles, FlaskConical, Swords, BarChart3, Bell, X } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles, FlaskConical, Swords, BarChart3, Bell, X, Shield, AlertTriangle, Lightbulb } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
@@ -38,6 +38,7 @@ export default function PaperView() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [peerReviewData, setPeerReviewData] = useState<any>(null);
 
   const hypotheses = state?.hypotheses || [];
   const firstHypothesis = hypotheses[0] || { title: paper?.title || query, description: "" };
@@ -138,7 +139,7 @@ export default function PaperView() {
             <span className="text-sm font-bold text-foreground tracking-tight font-display">AION</span>
           </div>
           <div className="flex items-center gap-2">
-            <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
+            <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} onReviewComplete={setPeerReviewData} />
             <PaperPDFExporter paper={paper} query={query} />
             <ReproducibilityExporter paper={paper} query={query} />
             <motion.button
@@ -321,6 +322,76 @@ export default function PaperView() {
               </div>
             </Section>
           </motion.div>
+
+          {/* Peer Review Results — Inline */}
+          {peerReviewData && (
+            <motion.div custom={limIdx + 0.5} initial="hidden" animate="visible" variants={sectionVariants}>
+              <div className="mt-6 pt-8 border-t border-border/30">
+                <h2 className="font-serif text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  AI Peer Review
+                </h2>
+
+                {/* Score Badge */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="glass-panel px-5 py-3 text-center">
+                    <div className="text-2xl font-bold aion-gradient-text">{peerReviewData.overallScore ?? "–"}/10</div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Overall Score</p>
+                  </div>
+                  <p className="text-sm text-foreground/80 italic flex-1">{typeof peerReviewData.verdict === "string" ? peerReviewData.verdict : "Review complete."}</p>
+                </div>
+
+                {/* Strengths */}
+                {Array.isArray(peerReviewData.strengths) && peerReviewData.strengths.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold text-emerald-600 mb-2 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Strengths
+                    </h3>
+                    <ul className="space-y-1.5 pl-5">
+                      {peerReviewData.strengths.map((s: any, i: number) => (
+                        <li key={i} className="text-xs text-foreground/80 leading-relaxed list-disc">
+                          {typeof s === "string" ? s : JSON.stringify(s)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Weaknesses */}
+                {Array.isArray(peerReviewData.weaknesses) && peerReviewData.weaknesses.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Weaknesses
+                    </h3>
+                    <ul className="space-y-1.5 pl-5">
+                      {peerReviewData.weaknesses.map((w: any, i: number) => (
+                        <li key={i} className="text-xs text-foreground/80 leading-relaxed list-disc">
+                          {typeof w === "string" ? w : JSON.stringify(w)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Suggestions */}
+                {Array.isArray(peerReviewData.suggestions) && peerReviewData.suggestions.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-1.5">
+                      <Lightbulb className="h-3.5 w-3.5" /> Suggestions
+                    </h3>
+                    <div className="space-y-2">
+                      {peerReviewData.suggestions.map((s: any, i: number) => (
+                        <div key={i} className="rounded-xl bg-muted/40 p-3">
+                          <p className="text-xs text-foreground/80 leading-relaxed">{typeof s?.text === "string" ? s.text : typeof s === "string" ? s : JSON.stringify(s)}</p>
+                          {s?.section && <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70 mt-1 block">{s.section}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
 
           {/* Research Gaps & Next Steps */}
           {researchGaps.length > 0 && (
