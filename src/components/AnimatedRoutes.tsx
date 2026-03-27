@@ -29,8 +29,10 @@ export default function AnimatedRoutes() {
         <Routes location={location}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/idea-review" element={<IdeaReviewResults />} />
           <Route path="/paper" element={<PaperView />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="*" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>
