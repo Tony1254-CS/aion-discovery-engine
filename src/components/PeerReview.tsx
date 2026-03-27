@@ -18,7 +18,7 @@ interface ReviewData {
   verdict: string;
 }
 
-export default function PeerReview({ paper, query, onPaperUpdate }: PeerReviewProps) {
+export default function PeerReview({ paper, query, onPaperUpdate, onReviewComplete }: PeerReviewProps) {
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(false);
