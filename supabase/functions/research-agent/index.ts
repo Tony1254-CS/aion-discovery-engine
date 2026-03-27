@@ -187,14 +187,14 @@ Respond in valid JSON:
         break;
 
       case "research-proposal":
-        model = "gemini-2.0-flash";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 4096;
         systemPrompt = `You are a research proposal writing agent. Given a research gap and a suggestion, write a concise 1-2 page research proposal with: (1) Introduction & Background (2 paragraphs), (2) Research Question & Hypothesis, (3) Proposed Methodology (2 paragraphs), (4) Expected Outcomes, (5) Suggested Timeline (6 months). Write in formal academic prose. Return ONLY valid JSON: {"proposal": "The full proposal text with paragraph breaks"}`;
         userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
         break;
 
       case "debate":
-        model = "gemini-2.0-flash";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 2048;
         systemPrompt = context?.systemPrompt || "You are a scientific debater.";
         userPrompt = (context?.history || []).map((m: any) => m.content).join("\n\n") + `\n\nNow respond in your role. Research question: "${query}"`;
