@@ -105,6 +105,31 @@ export default function IdeaReviewResults() {
   const [statusMsg, setStatusMsg] = useState("Analyzing your idea…");
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    if (!review || saving || saved) return;
+    setSaving(true);
+    try {
+      const title = ideaText.slice(0, 100).trim() + (ideaText.length > 100 ? "…" : "");
+      const { error: insertError } = await supabase.from("idea_reviews" as any).insert({
+        idea_text: ideaText,
+        review_json: review as any,
+        similar_papers: similarPapers as any,
+        overall_score: review.overallScore,
+        novelty_score: review.noveltyScore,
+        clarity_score: review.clarityScore,
+        title,
+      } as any);
+      if (insertError) throw insertError;
+      setSaved(true);
+    } catch (err: any) {
+      console.error("Save failed:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (!ideaText) {
