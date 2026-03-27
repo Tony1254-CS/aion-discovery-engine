@@ -38,6 +38,7 @@ export default function PaperView() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [peerReviewData, setPeerReviewData] = useState<any>(null);
 
   const hypotheses = state?.hypotheses || [];
   const firstHypothesis = hypotheses[0] || { title: paper?.title || query, description: "" };
