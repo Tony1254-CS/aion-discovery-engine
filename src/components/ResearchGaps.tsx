@@ -64,7 +64,8 @@ export default function ResearchGaps({ gaps, query }: Props) {
         },
       });
       if (error) throw error;
-      setProposals((prev) => ({ ...prev, [key]: data.result?.proposal || "Proposal generation failed." }));
+      const proposal = data.result?.proposal || "Proposal generation failed.";
+      setProposals((prev) => ({ ...prev, [key]: typeof proposal === "string" ? proposal : JSON.stringify(proposal, null, 2) }));
     } catch (e) {
       console.error(e);
       setProposals((prev) => ({ ...prev, [key]: "Failed to generate proposal. Please try again." }));
