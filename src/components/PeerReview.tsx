@@ -201,6 +201,7 @@ export default function PeerReview({ paper, query, onPaperUpdate, onReviewComple
               )}
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
