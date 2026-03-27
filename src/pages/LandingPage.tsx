@@ -310,7 +310,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.8 }}
-            className="flex flex-wrap justify-center gap-12 sm:gap-16 mt-28"
+            className="flex flex-wrap justify-center gap-8 sm:gap-12 md:gap-16 mt-20 sm:mt-28"
           >
             {features.map(({ icon: Icon, label, desc }, i) => (
               <motion.div
