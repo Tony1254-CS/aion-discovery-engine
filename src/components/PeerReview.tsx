@@ -7,6 +7,7 @@ interface PeerReviewProps {
   paper: any;
   query: string;
   onPaperUpdate: (paper: any) => void;
+  onReviewComplete?: (review: ReviewData) => void;
 }
 
 interface ReviewData {
