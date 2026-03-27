@@ -16,7 +16,7 @@ export default function HypothesisCards({ hypotheses, selected, onSelect }: Prop
       <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-semibold">
         Generated Hypotheses
       </h3>
-      {hypotheses.map((h, i) => {
+      {hypotheses.filter(Boolean).map((h, i) => {
         const isSelected = selected === h.id;
         return (
           <motion.button
