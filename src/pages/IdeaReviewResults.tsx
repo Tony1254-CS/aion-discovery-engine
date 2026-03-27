@@ -184,6 +184,7 @@ export default function IdeaReviewResults() {
   const location = useLocation();
   const navigate = useNavigate();
   const ideaText = (location.state as any)?.ideaText || "";
+  const isMobile = useIsMobile();
 
   const [review, setReview] = useState<ReviewData | null>(null);
   const [similarPapers, setSimilarPapers] = useState<SimilarPaper[]>([]);
@@ -191,6 +192,7 @@ export default function IdeaReviewResults() {
   const [statusMsg, setStatusMsg] = useState("Analyzing your idea…");
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showFullIdea, setShowFullIdea] = useState(false);
