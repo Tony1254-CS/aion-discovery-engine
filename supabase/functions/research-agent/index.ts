@@ -6,9 +6,20 @@ const corsHeaders = {
 };
 
 const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const FAST_MODEL = "google/gemini-2.5-flash-lite";
 const BALANCED_MODEL = "google/gemini-3-flash-preview";
 const LONGFORM_MODEL = "google/gemini-2.5-flash";
+// Groq fallback models
+const GROQ_FAST = "llama-3.1-8b-instant";
+const GROQ_BALANCED = "llama-3.3-70b-versatile";
+const GROQ_LONGFORM = "llama-3.3-70b-versatile";
+
+const getGroqModel = (primaryModel: string) => {
+  if (primaryModel === LONGFORM_MODEL) return GROQ_LONGFORM;
+  if (primaryModel === BALANCED_MODEL) return GROQ_BALANCED;
+  return GROQ_FAST;
+};
 const STAGES = [
   "literature",
   "gaps",
