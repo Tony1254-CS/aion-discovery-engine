@@ -155,6 +155,7 @@ export default function IdeaReviewResults() {
                 authors: safeStr(p.authors, "Unknown"),
                 relevance: safeNum(p.relevance, 0),
                 source: safeStr(p.source, "unknown"),
+                url: safeStr(p.url, ""),
               }))
             );
           }
