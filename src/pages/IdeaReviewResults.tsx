@@ -259,11 +259,32 @@ export default function IdeaReviewResults() {
 
               <div className="flex-1" />
 
+              {review && (
+                <motion.button
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSave}
+                  disabled={saving || saved}
+                  className={`w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel transition-all mt-4 ${
+                    saved ? "text-[hsl(var(--aion-cyan))] border-[hsl(var(--aion-cyan))]/20" : "text-foreground hover:text-primary"
+                  }`}
+                >
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : saved ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  {saving ? "Saving…" : saved ? "Saved!" : "Save Review"}
+                </motion.button>
+              )}
+
               <motion.button
                 whileHover={{ scale: 1.01, y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/")}
-                className="w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel text-muted-foreground hover:text-foreground transition-all mt-4"
+                className="w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel text-muted-foreground hover:text-foreground transition-all mt-2"
               >
                 <Lightbulb className="h-3.5 w-3.5" />
                 Review Another Idea
