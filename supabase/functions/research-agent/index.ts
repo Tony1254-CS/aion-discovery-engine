@@ -21,6 +21,113 @@ const paperFreeModels = [
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const buildFallbackPaper = (query: string, context: any) => {
+  const literature = context?.literature;
+  const references = (literature?.papers || []).slice(0, 12).map((paper: any) => ({
+    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.${paper.doi ? ` https://doi.org/${paper.doi}` : ""}`.trim(),
+  }));
+
+  return {
+    title: `Preliminary research brief: ${query}`,
+    abstract: `This preliminary brief was assembled because free AI generation is temporarily rate-limited. It preserves the query, literature context, and experimental direction already gathered so work can continue while live long-form drafting is paused. Retry shortly to replace this brief with a complete publication-style paper.`,
+    introduction: `This project investigates the question: ${query}. A full narrative paper could not be generated because the free AI providers were temporarily saturated. The application therefore preserved the existing literature findings and workflow state in a readable fallback draft so the user can continue reviewing the emerging direction and retry once capacity returns.\n\nThe available context indicates that the current evidence base already contains a useful synthesis, a working set of gaps, and an experiment design scaffold. This fallback introduction intentionally prioritizes continuity over completeness and should be treated as a temporary placeholder rather than a final scholarly section.`,
+    literatureReview: literature?.synthesis || "A full literature review could not be generated because free-model capacity is temporarily exhausted. Please retry shortly to regenerate a complete evidence synthesis with verified citations and structured thematic analysis.",
+    methods: context?.experiment?.methodology || "Detailed methods generation is temporarily unavailable because free AI providers are rate-limited. The saved experiment design from earlier pipeline stages should be used as the starting point when regenerating the full paper.",
+    results: context?.experiment?.results?.keyFinding || "Results narration is temporarily unavailable because free AI providers are rate-limited. Quantitative outputs from earlier stages remain available in the dashboard and can be incorporated into the next successful paper run.",
+    discussion: `Discussion generation is temporarily paused because the free AI providers are rate-limited. Based on the available context, the safest next step is to preserve the current hypotheses, experimental outputs, and literature evidence, then retry the paper stage once provider capacity returns.`,
+    conclusion: `This fallback paper keeps the research session usable during temporary model saturation. The project state has been preserved, but a full publication-grade manuscript still requires a successful rerun when free-model capacity becomes available again.`,
+    references: references.length > 0 ? references : [{ text: "Reference list will repopulate after the next successful paper generation run." }],
+  };
+};
+
+const buildRateLimitedResult = (stage: string, query: string, context: any) => {
+  switch (stage) {
+    case "literature":
+      return {
+        papers: [],
+        concepts: [],
+        synthesis: `Live literature synthesis is temporarily unavailable because the free AI providers are rate-limited for the query \"${query}\". Please retry shortly or use the literature monitor while capacity recovers.`,
+      };
+    case "gaps":
+      return {
+        gaps: [{
+          title: "Gap analysis temporarily paused",
+          description: "Free AI capacity is temporarily saturated, so automated gap extraction could not complete right now. The literature context is still preserved and this stage can be regenerated once rate limits clear.",
+          relevance: "Retrying later will restore a fuller evidence-based gap analysis without changing your query.",
+        }],
+      };
+    case "competing-hypotheses":
+      return {
+        hypotheses: [{
+          type: "primary",
+          title: `Provisional hypothesis for: ${query}`,
+          description: "A complete multi-hypothesis comparison could not be generated because the free AI providers are temporarily rate-limited.",
+          predictedOutcome: "Predicted outcome will populate after the next successful retry.",
+          approach: "Retry this stage to generate the full competing hypothesis set.",
+          pValue: 0.05,
+          effectSize: 0.2,
+          verdict: "weak",
+        }],
+        noveltyScore: 0,
+        closestWork: "Temporarily unavailable",
+        noveltyDifference: "Will populate after a successful retry.",
+      };
+    case "experiment":
+      return {
+        methodology: "Experiment design is temporarily unavailable because the free AI providers are rate-limited. Retry shortly to generate the full methods section.",
+        dataDescription: "No structured data description could be generated during the temporary rate-limit window.",
+        results: {
+          pValue: 0.05,
+          effectSize: 0.2,
+          sampleSize: 0,
+          keyFinding: "Experimental interpretation is pending a successful retry.",
+          secondaryFindings: [],
+          xAxisLabel: "Pending retry",
+          yAxisLabel: "Pending retry",
+          figureTitle: "Awaiting regenerated experiment output",
+        },
+        figures: [],
+      };
+    case "paper":
+      return buildFallbackPaper(query, context);
+    case "refine":
+      return context?.paper || buildFallbackPaper(query, context);
+    case "peer-review":
+      return {
+        strengths: ["Session state was preserved despite the provider limit."],
+        weaknesses: ["A full peer review could not be generated while free AI capacity was saturated."],
+        suggestions: [{ text: "Retry the peer review once rate limits clear.", section: "discussion" }],
+        overallScore: 5,
+        verdict: "Peer review postponed due to temporary AI rate limits.",
+      };
+    case "research-gaps":
+      return {
+        gaps: [{
+          title: "Next-step generation delayed",
+          description: "The full next-steps analysis is temporarily unavailable because the free AI providers are rate-limited.",
+          type: "under-explored",
+          suggestions: [{
+            title: "Retry gap analysis",
+            description: "Run the same query again after the cooldown window to regenerate detailed research gaps.",
+            hypothesisDraft: "A full hypothesis draft will be generated after retry.",
+            suggestedIV: "Pending retry",
+            suggestedDV: "Pending retry",
+            controls: "Pending retry",
+            datasetRecommendation: "Pending retry",
+          }],
+        }],
+      };
+    case "research-proposal":
+      return {
+        proposal: "Research proposal generation is temporarily unavailable because the free AI providers are rate-limited. Please retry shortly.",
+      };
+    case "debate":
+      return { raw: "Debate mode is temporarily unavailable because the free AI providers are rate-limited. Please retry shortly." };
+    default:
+      return { raw: "Temporary AI rate limit encountered. Please retry shortly." };
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -259,15 +366,15 @@ Respond in valid JSON:
     }
 
     if (!response || !response.ok) {
-      if (response?.status === 429) {
-        return new Response(JSON.stringify({ error: "API rate limit reached across free models. Please wait a few minutes and try again." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      if (response?.status === 402) {
-        return new Response(JSON.stringify({ error: "No available free model could serve this request right now." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (response?.status === 429 || response?.status === 402) {
+        console.warn(`Falling back for stage ${stage} after provider exhaustion on ${activeModel}.`);
+        return new Response(JSON.stringify({
+          stage,
+          model: activeModel,
+          rateLimited: true,
+          result: buildRateLimitedResult(stage, query, context),
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
