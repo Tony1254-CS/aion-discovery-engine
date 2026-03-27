@@ -263,18 +263,18 @@ serve(async (req) => {
       if (aiResult) usedModel = `google/${model}`;
     }
 
-    // 2nd: Groq (FREE, lower limits)
-    if (!aiResult && GROQ_API_KEY) {
-      console.log("Google AI unavailable, trying Groq backup...");
-      aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
-      if (aiResult) usedModel = "groq/llama";
-    }
-
-    // 3rd: Hugging Face (FREE)
+    // 2nd: Hugging Face / DeepSeek-V3 (FREE, good quality)
     if (!aiResult && HUGGINGFACE_API_KEY) {
-      console.log("Groq unavailable, trying HuggingFace backup...");
+      console.log("Google AI unavailable, trying HuggingFace backup...");
       aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
       if (aiResult) usedModel = "hf/deepseek-v3";
+    }
+
+    // 3rd: Groq (FREE, fast but very limited TPM)
+    if (!aiResult && GROQ_API_KEY) {
+      console.log("HuggingFace unavailable, trying Groq backup...");
+      aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
+      if (aiResult) usedModel = "groq/llama";
     }
 
     // Both failed → structured fallback
