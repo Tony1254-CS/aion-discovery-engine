@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [showSimulation, setShowSimulation] = useState(false);
   const [showDebate, setShowDebate] = useState(false);
   const [showMetaAnalysis, setShowMetaAnalysis] = useState(false);
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
   const abortRef = useRef(new AbortController());
 
   const currentStage = stages.find(s => s.status === "active")?.id;
