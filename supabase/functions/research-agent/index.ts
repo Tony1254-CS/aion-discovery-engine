@@ -188,53 +188,57 @@ Respond in valid JSON:
         throw new Error(`Unknown stage: ${stage}`);
     }
 
-    const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`;
+    const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
 
     const requestBody = JSON.stringify({
-      contents: [
-        { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        temperature: 0.7,
-      },
+      max_tokens: maxTokens,
+      temperature: 0.7,
     });
 
     // Retry with exponential backoff for rate limits
     let response: Response | null = null;
     for (let attempt = 0; attempt < 4; attempt++) {
-      response = await fetch(googleUrl, {
+      response = await fetch(openRouterUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://aion-discovery-engine.lovable.app",
+          "X-Title": "AION Research Engine",
+        },
         body: requestBody,
       });
 
       if (response.status !== 429) break;
-      
-      // Wait before retry: 3s, 6s, 12s
+
       const waitMs = 3000 * Math.pow(2, attempt);
       console.log(`Rate limited on attempt ${attempt + 1}, waiting ${waitMs}ms...`);
-      await response.text(); // consume body
+      await response.text();
       await new Promise(r => setTimeout(r, waitMs));
     }
 
     if (!response || !response.ok) {
       if (response?.status === 429) {
-        return new Response(JSON.stringify({ error: "Google AI rate limit reached. Please wait a minute and try again." }), {
+        return new Response(JSON.stringify({ error: "API rate limit reached. Please wait a minute and try again." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = response ? await response.text() : "No response";
-      console.error("Google AI error:", response?.status, t);
-      throw new Error(`Google AI error: ${response?.status}`);
+      console.error("OpenRouter error:", response?.status, t);
+      throw new Error(`OpenRouter error: ${response?.status}`);
     }
 
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
-    const finishReason = data.candidates?.[0]?.finishReason;
-    if (finishReason === "MAX_TOKENS") {
-      console.warn(`Output truncated for stage ${stage} - finishReason: ${finishReason}`);
+    const finishReason = data.choices?.[0]?.finish_reason;
+    if (finishReason === "length") {
+      console.warn(`Output truncated for stage ${stage} - finish_reason: ${finishReason}`);
     }
 
     // Parse JSON from response (handle markdown code blocks)
