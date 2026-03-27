@@ -323,7 +323,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AIAvatar currentStage={currentStage} latestLog={latestLog} />
+      
     </div>
   );
 }
