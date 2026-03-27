@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing, Lightbulb } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import AionShowcase from "@/components/landing/AionShowcase";
 import LiteratureMonitor from "@/components/LiteratureMonitor";
+import IdeaReview from "@/components/IdeaReview";
 import { useNavigate } from "react-router-dom";
 
 const exampleQueries = [
@@ -29,6 +30,7 @@ const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState<"research" | "review">("research");
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; data: string; type: string } | null>(null);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,11 +153,46 @@ export default function LandingPage() {
             </motion.p>
           </motion.div>
 
-          {/* ─── Input Area ─── */}
+          {/* ─── Tab Toggle ─── */}
           <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
+            className="flex items-center gap-1 p-1 rounded-2xl glass-panel mb-6 self-center"
+          >
+            <button
+              onClick={() => setActiveTab("research")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-medium transition-all duration-300 ${
+                activeTab === "research"
+                  ? "bg-primary/20 text-primary shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Research Query
+            </button>
+            <button
+              onClick={() => setActiveTab("review")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-medium transition-all duration-300 ${
+                activeTab === "review"
+                  ? "bg-primary/20 text-primary shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+              }`}
+            >
+              <Lightbulb className="h-3.5 w-3.5" />
+              Idea Review
+            </button>
+          </motion.div>
+
+          {/* ─── Input Area ─── */}
+          <AnimatePresence mode="wait">
+            {activeTab === "research" ? (
+          <motion.div
+            key="research-input"
             initial={{ opacity: 0, y: 35 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
             className={`w-full glass-panel-hero p-[5px] mb-6 transition-all duration-700 ${
               focused ? "glow-ring-strong" : ""
             }`}
@@ -226,6 +263,19 @@ export default function LandingPage() {
               </div>
             </div>
           </motion.div>
+            ) : (
+              <motion.div
+                key="review-input"
+                initial={{ opacity: 0, y: 35 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="w-full mb-6"
+              >
+                <IdeaReview />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ─── Example Queries ─── */}
           <motion.div
