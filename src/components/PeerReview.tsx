@@ -87,7 +87,7 @@ export default function PeerReview({ paper, query, onPaperUpdate, onReviewComple
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-50 h-full w-[420px] max-w-[90vw] border-l border-border bg-background shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 z-[60] h-full w-full sm:w-[420px] sm:max-w-[90vw] border-l border-border bg-background shadow-2xl flex flex-col"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-2.5">
