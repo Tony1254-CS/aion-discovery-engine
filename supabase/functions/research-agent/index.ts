@@ -295,52 +295,73 @@ serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!LOVABLE_API_KEY && !GROQ_API_KEY) throw new Error("No AI API keys configured");
 
     const { model, maxTokens, systemPrompt, userPrompt } = getStageConfig(stage, query, context);
-    const response = await fetch(AI_GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: maxTokens,
-        temperature: 0.3,
-      }),
-    });
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
 
-    if (!response.ok) {
-      const responseText = await response.text();
-      if (response.status === 429 || response.status === 402) {
-        return new Response(
-          JSON.stringify({
-            stage,
-            model,
-            rateLimited: response.status === 429,
-            result: buildFallbackResult(stage, query, context),
-          }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+    // Try primary (Lovable AI) first
+    let aiResult: any = null;
+    let usedModel = model;
+
+    if (LOVABLE_API_KEY) {
+      try {
+        const response = await fetch(AI_GATEWAY_URL, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.3 }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          aiResult = data.choices?.[0]?.message?.content || "";
+        } else {
+          console.log(`Primary AI failed (${response.status}), trying Groq backup...`);
+        }
+      } catch (err) {
+        console.log("Primary AI error, trying Groq backup...", err);
       }
-
-      console.error("AI gateway error:", response.status, responseText);
-      throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
-    const parsed = JSON_STAGES.has(stage) ? parseJsonContent(content) : { raw: content };
+    // Fallback to Groq if primary failed
+    if (!aiResult && GROQ_API_KEY) {
+      const groqModel = getGroqModel(model);
+      usedModel = `groq/${groqModel}`;
+      try {
+        const response = await fetch(GROQ_API_URL, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: groqModel, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3 }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          aiResult = data.choices?.[0]?.message?.content || "";
+        } else {
+          const t = await response.text();
+          console.error("Groq backup also failed:", response.status, t);
+        }
+      } catch (err) {
+        console.error("Groq backup error:", err);
+      }
+    }
+
+    // If both failed, return fallback
+    if (!aiResult) {
+      return new Response(
+        JSON.stringify({ stage, model: usedModel, rateLimited: true, result: buildFallbackResult(stage, query, context) }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const parsed = JSON_STAGES.has(stage) ? parseJsonContent(aiResult) : { raw: aiResult };
     const result = parsed && typeof parsed === "object" && !("raw" in parsed && JSON_STAGES.has(stage))
       ? parsed
       : buildFallbackResult(stage, query, context);
 
-    return new Response(JSON.stringify({ stage, model, result }), {
+    return new Response(JSON.stringify({ stage, model: usedModel, result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
