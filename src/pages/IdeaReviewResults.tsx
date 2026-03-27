@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Beaker, Home, Sparkles, CheckCircle2, XCircle, BarChart3,
   FlaskConical, Database, Target, BookOpen, RefreshCw, Loader2,
-  PanelLeftClose, PanelLeft, Lightbulb, ChevronDown, ChevronUp
+  PanelLeftClose, PanelLeft, Lightbulb, ChevronDown, ChevronUp,
+  Save, Check
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -104,6 +105,31 @@ export default function IdeaReviewResults() {
   const [statusMsg, setStatusMsg] = useState("Analyzing your idea…");
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    if (!review || saving || saved) return;
+    setSaving(true);
+    try {
+      const title = ideaText.slice(0, 100).trim() + (ideaText.length > 100 ? "…" : "");
+      const { error: insertError } = await supabase.from("idea_reviews" as any).insert({
+        idea_text: ideaText,
+        review_json: review as any,
+        similar_papers: similarPapers as any,
+        overall_score: review.overallScore,
+        novelty_score: review.noveltyScore,
+        clarity_score: review.clarityScore,
+        title,
+      } as any);
+      if (insertError) throw insertError;
+      setSaved(true);
+    } catch (err: any) {
+      console.error("Save failed:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (!ideaText) {
@@ -233,11 +259,32 @@ export default function IdeaReviewResults() {
 
               <div className="flex-1" />
 
+              {review && (
+                <motion.button
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSave}
+                  disabled={saving || saved}
+                  className={`w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel transition-all mt-4 ${
+                    saved ? "text-[hsl(var(--aion-cyan))] border-[hsl(var(--aion-cyan))]/20" : "text-foreground hover:text-primary"
+                  }`}
+                >
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : saved ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  {saving ? "Saving…" : saved ? "Saved!" : "Save Review"}
+                </motion.button>
+              )}
+
               <motion.button
                 whileHover={{ scale: 1.01, y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/")}
-                className="w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel text-muted-foreground hover:text-foreground transition-all mt-4"
+                className="w-full flex items-center justify-center gap-2 text-xs px-4 py-2.5 rounded-xl glass-panel text-muted-foreground hover:text-foreground transition-all mt-2"
               >
                 <Lightbulb className="h-3.5 w-3.5" />
                 Review Another Idea

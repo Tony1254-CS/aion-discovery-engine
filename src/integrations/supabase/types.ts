@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      idea_reviews: {
+        Row: {
+          clarity_score: number | null
+          created_at: string
+          id: string
+          idea_text: string
+          novelty_score: number | null
+          overall_score: number | null
+          review_json: Json | null
+          similar_papers: Json | null
+          title: string | null
+        }
+        Insert: {
+          clarity_score?: number | null
+          created_at?: string
+          id?: string
+          idea_text: string
+          novelty_score?: number | null
+          overall_score?: number | null
+          review_json?: Json | null
+          similar_papers?: Json | null
+          title?: string | null
+        }
+        Update: {
+          clarity_score?: number | null
+          created_at?: string
+          id?: string
+          idea_text?: string
+          novelty_score?: number | null
+          overall_score?: number | null
+          review_json?: Json | null
+          similar_papers?: Json | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           abstract: string | null
