@@ -257,22 +257,22 @@ serve(async (req) => {
     let aiResult: string | null = null;
     let usedModel = model;
 
-    // 1st: Google AI Studio (FREE, generous limits)
-    if (GOOGLE_AI_API_KEY) {
-      aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
-      if (aiResult) usedModel = `google/${model}`;
-    }
-
-    // 2nd: Hugging Face / DeepSeek-V3 (FREE, good quality)
-    if (!aiResult && HUGGINGFACE_API_KEY) {
-      console.log("Google AI unavailable, trying HuggingFace backup...");
+    // 1st: Hugging Face / DeepSeek-V3 (FREE, good quality, reliable)
+    if (HUGGINGFACE_API_KEY) {
       aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
       if (aiResult) usedModel = "hf/deepseek-v3";
     }
 
+    // 2nd: Google AI Studio (FREE, but quota may be exhausted)
+    if (!aiResult && GOOGLE_AI_API_KEY) {
+      console.log("HuggingFace unavailable, trying Google AI...");
+      aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
+      if (aiResult) usedModel = `google/${model}`;
+    }
+
     // 3rd: Groq (FREE, fast but very limited TPM)
     if (!aiResult && GROQ_API_KEY) {
-      console.log("HuggingFace unavailable, trying Groq backup...");
+      console.log("Google AI unavailable, trying Groq...");
       aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
       if (aiResult) usedModel = "groq/llama";
     }
