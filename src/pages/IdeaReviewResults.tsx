@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Beaker, Home, Sparkles, CheckCircle2, XCircle, BarChart3,
   FlaskConical, Database, Target, BookOpen, RefreshCw, Loader2,
-  PanelLeftClose, PanelLeft, Lightbulb, ChevronDown, ChevronUp
+  PanelLeftClose, PanelLeft, Lightbulb, ChevronDown, ChevronUp,
+  Save, Check
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
