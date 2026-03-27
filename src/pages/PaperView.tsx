@@ -139,7 +139,7 @@ export default function PaperView() {
             <span className="text-sm font-bold text-foreground tracking-tight font-display">AION</span>
           </div>
           <div className="flex items-center gap-2">
-            <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} />
+            <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} onReviewComplete={setPeerReviewData} />
             <PaperPDFExporter paper={paper} query={query} />
             <ReproducibilityExporter paper={paper} query={query} />
             <motion.button
