@@ -42,7 +42,7 @@ const parseJsonContent = (content: string) => {
 const buildFallbackPaper = (query: string, context: any) => {
   const literature = context?.literature;
   const references = (literature?.papers || []).slice(0, 12).map((paper: any) => ({
-    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.${paper.doi ? ` https://doi.org/${paper.doi}` : ""}`.trim(),
+    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.`.trim(),
   }));
   return {
     title: `Preliminary research brief: ${query}`,
@@ -92,8 +92,8 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
   const configs: Record<Stage, { model: string; maxTokens: number; systemPrompt: string; userPrompt: string }> = {
     literature: {
       model: GOOGLE_BALANCED, maxTokens: 6000,
-      systemPrompt: "You are a scientific literature review agent. Return structured JSON with real, verifiable papers. Never invent DOIs. Required keys: papers (array of {title, authors, year, journal, doi, abstract}), concepts (array of strings), synthesis (string). Include as many real papers as possible (aim for 15-20). The synthesis should be comprehensive (at least 500 words).",
-      userPrompt: `Research question: "${query}"\nReturn 15-20 relevant real papers from the literature, 8 key concepts, and a thorough synthesis paragraph covering the state of knowledge, debates, and evolution of the field.`,
+      systemPrompt: "You are a scientific literature review agent. Return structured JSON with real, verifiable papers. NEVER include DOIs — AI-generated DOIs are almost always fake. Required keys: papers (array of {title, authors, year, journal, abstract}), concepts (array of strings), synthesis (string). Include 15-20 real papers. The synthesis should be comprehensive (500+ words).",
+      userPrompt: `Research question: "${query}"\nReturn 15-20 relevant real papers (NO DOIs), 8 key concepts, and a thorough synthesis.`,
     },
     gaps: {
       model: GOOGLE_FAST, maxTokens: 2000,
@@ -122,7 +122,7 @@ IMPORTANT LENGTH REQUIREMENTS:
 - results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
 - discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
 - conclusion: 300+ words
-- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal. DOI if known." Do not invent DOIs or papers.
+- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal, Volume(Issue), Pages." NEVER include DOIs — AI-generated DOIs are almost always fake and broken. Only cite real, verifiable papers.
 
 Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
