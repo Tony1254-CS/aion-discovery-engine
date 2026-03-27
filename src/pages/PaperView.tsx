@@ -252,6 +252,11 @@ export default function PaperView() {
           </motion.p>
           <p className="text-xs text-muted-foreground/50 mb-8">Research query: "{query}"</p>
 
+          <div className="mb-6 flex flex-wrap gap-2 sm:hidden">
+            <PaperPDFExporter paper={paper} query={query} />
+            <ReproducibilityExporter paper={paper} query={query} />
+          </div>
+
           {/* Highlighted Advanced Tools CTA */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
