@@ -407,8 +407,19 @@ export default function IdeaReviewResults() {
                   <div className="space-y-3">
                     {similarPapers.map((p, i) => (
                       <div key={i} className="glass-panel p-3 rounded-lg">
-                        <p className="text-xs font-medium text-foreground/90">{p.title}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{p.authors}</p>
+                        {p.url ? (
+                          <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary hover:underline">
+                            {p.title}
+                          </a>
+                        ) : (
+                          <p className="text-xs font-medium text-foreground/90">{p.title}</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{p.authors} · {p.source}</p>
+                        {p.url && (
+                          <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-[9px] text-primary/60 hover:text-primary truncate block mt-1">
+                            {p.url}
+                          </a>
+                        )}
                         <div className="flex items-center gap-2 mt-2">
                           <div className="h-1 flex-1 bg-white/[0.06] rounded-full overflow-hidden">
                             <div className="h-full bg-primary/60 rounded-full" style={{ width: `${Math.round(p.relevance * 100)}%` }} />
