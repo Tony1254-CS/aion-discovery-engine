@@ -366,15 +366,15 @@ Respond in valid JSON:
     }
 
     if (!response || !response.ok) {
-      if (response?.status === 429) {
-        return new Response(JSON.stringify({ error: "API rate limit reached across free models. Please wait a few minutes and try again." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      if (response?.status === 402) {
-        return new Response(JSON.stringify({ error: "No available free model could serve this request right now." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (response?.status === 429 || response?.status === 402) {
+        console.warn(`Falling back for stage ${stage} after provider exhaustion on ${activeModel}.`);
+        return new Response(JSON.stringify({
+          stage,
+          model: activeModel,
+          rateLimited: true,
+          result: buildRateLimitedResult(stage, query, context),
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
