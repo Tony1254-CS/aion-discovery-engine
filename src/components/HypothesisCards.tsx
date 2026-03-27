@@ -49,7 +49,7 @@ export default function HypothesisCards({ hypotheses, selected, onSelect }: Prop
                     animate={{ opacity: 1, height: "auto" }}
                     className="text-xs text-primary/80 mt-2.5 pt-2.5 border-t border-border/50 leading-relaxed"
                   >
-                    <span className="font-semibold">Approach:</span> {h.approach}
+                    <span className="font-semibold">Approach:</span> {h.approach || "Not specified"}
                   </motion.p>
                 )}
               </div>
