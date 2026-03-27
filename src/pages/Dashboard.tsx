@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet, Zap, Swords, GitMerge } from "lucide-react";
+import { Beaker, FileText, PanelLeftClose, PanelLeft, Home, Sparkles, Trophy, ChevronRight, FileSpreadsheet, Zap, Swords, GitMerge, Menu, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Timeline from "@/components/Timeline";
 import LogPanel from "@/components/LogPanel";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
