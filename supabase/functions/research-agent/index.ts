@@ -5,6 +5,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const defaultFreeModels = [
+  "openrouter/free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "openai/gpt-oss-120b:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+];
+
+const paperFreeModels = [
+  "openrouter/free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "minimax/minimax-m2.5:free",
+];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -171,14 +187,14 @@ Respond in valid JSON:
         break;
 
       case "research-proposal":
-        model = "gemini-2.0-flash";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 4096;
         systemPrompt = `You are a research proposal writing agent. Given a research gap and a suggestion, write a concise 1-2 page research proposal with: (1) Introduction & Background (2 paragraphs), (2) Research Question & Hypothesis, (3) Proposed Methodology (2 paragraphs), (4) Expected Outcomes, (5) Suggested Timeline (6 months). Write in formal academic prose. Return ONLY valid JSON: {"proposal": "The full proposal text with paragraph breaks"}`;
         userPrompt = `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`;
         break;
 
       case "debate":
-        model = "gemini-2.0-flash";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 2048;
         systemPrompt = context?.systemPrompt || "You are a scientific debater.";
         userPrompt = (context?.history || []).map((m: any) => m.content).join("\n\n") + `\n\nNow respond in your role. Research question: "${query}"`;
@@ -189,47 +205,73 @@ Respond in valid JSON:
     }
 
     const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+    const candidateModels = stage === "paper" ? paperFreeModels : [model, ...defaultFreeModels.filter((item) => item !== model)];
 
-    const requestBody = JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    });
-
-    // Retry with exponential backoff for rate limits
     let response: Response | null = null;
-    for (let attempt = 0; attempt < 4; attempt++) {
-      response = await fetch(openRouterUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://aion-discovery-engine.lovable.app",
-          "X-Title": "AION Research Engine",
-        },
-        body: requestBody,
+    let responseText = "";
+    let activeModel = candidateModels[0];
+
+    for (const candidateModel of candidateModels) {
+      activeModel = candidateModel;
+      const requestBody = JSON.stringify({
+        model: candidateModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
       });
 
-      if (response.status !== 429) break;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        response = await fetch(openRouterUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://aion-discovery-engine.lovable.app",
+            "X-Title": "AION Research Engine",
+          },
+          body: requestBody,
+        });
 
-      const waitMs = 3000 * Math.pow(2, attempt);
-      console.log(`Rate limited on attempt ${attempt + 1}, waiting ${waitMs}ms...`);
-      await response.text();
-      await new Promise(r => setTimeout(r, waitMs));
+        if (response.ok) break;
+
+        responseText = await response.text();
+
+        if (response.status === 429) {
+          const waitMs = 10000 * (attempt + 1);
+          console.log(`Rate limited for ${candidateModel} on attempt ${attempt + 1}, waiting ${waitMs}ms...`);
+          await sleep(waitMs);
+          continue;
+        }
+
+        if (response.status === 402) {
+          console.log(`Skipping ${candidateModel} due to billing restrictions.`);
+          break;
+        }
+
+        console.error("OpenRouter error:", response.status, responseText);
+        throw new Error(`OpenRouter error: ${response.status}`);
+      }
+
+      if (response?.ok) break;
     }
 
     if (!response || !response.ok) {
       if (response?.status === 429) {
-        return new Response(JSON.stringify({ error: "API rate limit reached. Please wait a minute and try again." }), {
+        return new Response(JSON.stringify({ error: "API rate limit reached across free models. Please wait a few minutes and try again." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = response ? await response.text() : "No response";
-      console.error("OpenRouter error:", response?.status, t);
+
+      if (response?.status === 402) {
+        return new Response(JSON.stringify({ error: "No available free model could serve this request right now." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.error("OpenRouter error:", response?.status, responseText || "No response");
       throw new Error(`OpenRouter error: ${response?.status}`);
     }
 
@@ -238,10 +280,9 @@ Respond in valid JSON:
 
     const finishReason = data.choices?.[0]?.finish_reason;
     if (finishReason === "length") {
-      console.warn(`Output truncated for stage ${stage} - finish_reason: ${finishReason}`);
+      console.warn(`Output truncated for stage ${stage} using ${activeModel} - finish_reason: ${finishReason}`);
     }
 
-    // Parse JSON from response (handle markdown code blocks)
     let parsed;
     try {
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -250,7 +291,7 @@ Respond in valid JSON:
       parsed = { raw: content };
     }
 
-    return new Response(JSON.stringify({ stage, result: parsed }), {
+    return new Response(JSON.stringify({ stage, model: activeModel, result: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
