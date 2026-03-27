@@ -220,22 +220,26 @@ export async function runResearchPipeline(
     const hypResult = await callAgent("competing-hypotheses", query, { gaps: gapsResult.gaps, synthesis: litResult.synthesis });
     if (signal.aborted) return;
 
-    const rawHyps = hypResult.hypotheses || [];
+    const rawHyps = Array.isArray(hypResult.hypotheses) ? hypResult.hypotheses.filter(Boolean) : [];
     rawHyps.forEach((h: any, i: number) => {
-      hypotheses.push({ id: i + 1, title: h.title, description: h.description, predictedOutcome: h.predictedOutcome, approach: h.approach });
+      const hTitle = typeof h.title === "string" ? h.title : `Hypothesis ${i + 1}`;
+      const hDesc = typeof h.description === "string" ? h.description : "";
+      const hOutcome = typeof h.predictedOutcome === "string" ? h.predictedOutcome : "";
+      const hApproach = typeof h.approach === "string" ? h.approach : "";
+      hypotheses.push({ id: i + 1, title: hTitle, description: hDesc, predictedOutcome: hOutcome, approach: hApproach });
       competingHyps.push({
         type: h.type || (i === 0 ? "primary" : i === 1 ? "alternative" : "null"),
-        title: h.title,
-        description: h.description,
-        predictedOutcome: h.predictedOutcome,
-        approach: h.approach,
-        pValue: h.pValue ?? 0.05,
-        effectSize: h.effectSize ?? 0.5,
+        title: hTitle,
+        description: hDesc,
+        predictedOutcome: hOutcome,
+        approach: hApproach,
+        pValue: typeof h.pValue === "number" ? h.pValue : 0.05,
+        effectSize: typeof h.effectSize === "number" ? h.effectSize : 0.5,
         verdict: h.verdict || "weak",
       });
-      addNode(`hyp-${i}`, h.title, "hypothesis", h.description);
-      edges.push({ from: `concept-${i % (litResult.concepts?.length || 1)}`, to: `hyp-${i}` });
-      addLog(`${(h.type || "Hypothesis").toUpperCase()}: ${h.title}`, "info");
+      addNode(`hyp-${i}`, hTitle, "hypothesis", hDesc);
+      edges.push({ from: `concept-${i % Math.max(concepts.length, 1)}`, to: `hyp-${i}` });
+      addLog(`${(h.type || "Hypothesis").toUpperCase()}: ${hTitle}`, "info");
     });
 
     // Novelty
