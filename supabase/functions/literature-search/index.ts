@@ -16,9 +16,25 @@ interface Paper {
   url: string;
 }
 
+function normalizeTerm(term: string) {
+  return term.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+}
+
+function getQueryTerms(query: string) {
+  return query
+    .split(/\s+/)
+    .map(normalizeTerm)
+    .filter((term) => term.length > 2);
+}
+
 async function searchArxiv(query: string, maxResults = 8): Promise<Paper[]> {
-  const encodedQuery = encodeURIComponent(query);
-  const url = `http://export.arxiv.org/api/query?search_query=all:${encodedQuery}&start=0&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
+  const queryTerms = getQueryTerms(query);
+  const encodedQuery = encodeURIComponent(
+    queryTerms.length > 0
+      ? queryTerms.map((term) => `(ti:"${term}" OR abs:"${term}")`).join(" AND ")
+      : query,
+  );
+  const url = `http://export.arxiv.org/api/query?search_query=${encodedQuery}&start=0&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -131,14 +147,26 @@ async function searchPubMed(query: string, maxResults = 5): Promise<Paper[]> {
 }
 
 function computeRelevance(paper: Paper, queryTerms: string[]): number {
-  const text = `${paper.title} ${paper.abstract}`.toLowerCase();
-  let matches = 0;
+  const normalizedTitle = normalizeTerm(paper.title);
+  const normalizedAbstract = normalizeTerm(paper.abstract);
+
+  let titleMatches = 0;
+  let abstractMatches = 0;
+
   for (const term of queryTerms) {
-    if (text.includes(term.toLowerCase())) matches++;
+    if (normalizedTitle.includes(term)) titleMatches += 1;
+    if (normalizedAbstract.includes(term)) abstractMatches += 1;
   }
-  const ratio = queryTerms.length > 0 ? matches / queryTerms.length : 0;
-  // Scale 50-99 based on match ratio
-  return Math.min(99, Math.round(50 + ratio * 49));
+
+  if (queryTerms.length === 0) return 0;
+
+  const titleRatio = titleMatches / queryTerms.length;
+  const abstractRatio = abstractMatches / queryTerms.length;
+  const weightedScore = titleRatio * 0.7 + abstractRatio * 0.3;
+
+  if (weightedScore <= 0) return 0;
+
+  return Math.min(99, Math.max(40, Math.round(weightedScore * 100)));
 }
 
 serve(async (req) => {
@@ -159,7 +187,7 @@ serve(async (req) => {
       searchPubMed(query, 5),
     ]);
 
-    const queryTerms = query.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+    const queryTerms = getQueryTerms(query);
     const allPapers = [...arxivPapers, ...pubmedPapers];
 
     // Compute relevance scores
@@ -167,10 +195,12 @@ serve(async (req) => {
       paper.relevance = computeRelevance(paper, queryTerms);
     }
 
-    // Sort by relevance descending
-    allPapers.sort((a, b) => b.relevance - a.relevance);
+    const filteredPapers = allPapers
+      .filter((paper) => paper.relevance >= 45)
+      .sort((a, b) => b.relevance - a.relevance)
+      .slice(0, 12);
 
-    return new Response(JSON.stringify({ papers: allPapers }), {
+    return new Response(JSON.stringify({ papers: filteredPapers }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

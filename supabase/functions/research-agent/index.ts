@@ -42,7 +42,7 @@ const parseJsonContent = (content: string) => {
 const buildFallbackPaper = (query: string, context: any) => {
   const literature = context?.literature;
   const references = (literature?.papers || []).slice(0, 12).map((paper: any) => ({
-    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.`.trim(),
+    text: `${paper.authors || "Unknown author"} (${paper.year || paper.date?.slice?.(0, 4) || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || paper.source || "Unknown journal"}.${paper.url ? ` ${paper.url}` : ""}`.trim(),
   }));
   return {
     title: `Preliminary research brief: ${query}`,
@@ -301,6 +301,10 @@ serve(async (req) => {
     const result = parsed && typeof parsed === "object" && !("raw" in parsed && JSON_STAGES.has(stage))
       ? parsed
       : buildFallbackResult(stage, query, context);
+
+    if (stage === "paper" && (!Array.isArray((result as any).references) || (result as any).references.length === 0)) {
+      (result as any).references = buildFallbackPaper(query, context).references;
+    }
 
     return new Response(JSON.stringify({ stage, model: usedModel, result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
