@@ -42,7 +42,7 @@ export default function HypothesisCards({ hypotheses, selected, onSelect }: Prop
                   <p className="text-sm font-semibold text-foreground truncate">{h.title || "Untitled Hypothesis"}</p>
                   <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${isSelected ? "text-primary rotate-90" : "text-muted-foreground/30"}`} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{h.description}</p>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{h.description || ""}</p>
                 {isSelected && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
