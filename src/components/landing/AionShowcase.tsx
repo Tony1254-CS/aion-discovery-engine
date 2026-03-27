@@ -193,7 +193,7 @@ export default function AionShowcase() {
         </div>
 
         {/* ════════ Stats Strip ════════ */}
-        <div className="flex justify-center gap-16 sm:gap-24">
+        <div className="flex justify-center gap-10 sm:gap-16 md:gap-24">
           {stats.map((s, i) => (
             <AnimatedStat key={s.label} {...s} delay={i * 0.12} />
           ))}
