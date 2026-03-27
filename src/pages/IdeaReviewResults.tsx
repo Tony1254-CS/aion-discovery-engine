@@ -6,9 +6,10 @@ import {
   FlaskConical, Database, Target, BookOpen, Loader2,
   PanelLeftClose, PanelLeft, Lightbulb, ChevronDown, ChevronUp,
   Save, Check, TrendingUp, AlertTriangle, ArrowRight, ExternalLink,
-  Zap, Award, FileText, Layers, Eye, EyeOff
+  Zap, Award, FileText, Layers, Eye, EyeOff, Menu, X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReviewData {
   strengths: string[];
