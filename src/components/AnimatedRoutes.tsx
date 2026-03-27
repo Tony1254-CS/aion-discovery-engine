@@ -4,6 +4,7 @@ import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import PaperView from "@/pages/PaperView";
 import Leaderboard from "@/pages/Leaderboard";
+import IdeaReviewResults from "@/pages/IdeaReviewResults";
 import NotFound from "@/pages/NotFound";
 
 const pageVariants = {
