@@ -49,21 +49,40 @@ type UpdateCb = (data: {
 }) => void;
 
 let lastCallTime = 0;
-const MIN_CALL_INTERVAL = 4000; // 4s between calls to stay under 20 req/min
+const MIN_CALL_INTERVAL = 6000;
+const RATE_LIMIT_RETRY_DELAYS = [15000, 30000, 45000];
+
+const isRateLimitError = (message: string) =>
+  message.includes("429") || message.toLowerCase().includes("rate limit");
 
 async function callAgent(stage: string, query: string, context?: any) {
-  const now = Date.now();
-  const elapsed = now - lastCallTime;
-  if (elapsed < MIN_CALL_INTERVAL) {
-    await delay(MIN_CALL_INTERVAL - elapsed);
+  let attempt = 0;
+
+  while (true) {
+    const now = Date.now();
+    const elapsed = now - lastCallTime;
+    if (elapsed < MIN_CALL_INTERVAL) {
+      await delay(MIN_CALL_INTERVAL - elapsed);
+    }
+
+    lastCallTime = Date.now();
+    const { data, error } = await supabase.functions.invoke("research-agent", {
+      body: { query, stage, context },
+    });
+
+    const errorMessage = error?.message || data?.error;
+    if (!errorMessage) {
+      return data.result;
+    }
+
+    if (isRateLimitError(errorMessage) && attempt < RATE_LIMIT_RETRY_DELAYS.length) {
+      await delay(RATE_LIMIT_RETRY_DELAYS[attempt]);
+      attempt += 1;
+      continue;
+    }
+
+    throw new Error(errorMessage || "Agent call failed");
   }
-  lastCallTime = Date.now();
-  const { data, error } = await supabase.functions.invoke("research-agent", {
-    body: { query, stage, context },
-  });
-  if (error) throw new Error(error.message || "Agent call failed");
-  if (data?.error) throw new Error(data.error);
-  return data.result;
 }
 
 export async function runResearchPipeline(
