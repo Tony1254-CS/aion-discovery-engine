@@ -163,16 +163,23 @@ export async function runResearchPipeline(
     if (signal.aborted) return;
     researchContext.literature = litResult;
 
-    const papers = litResult.papers || [];
-    papers.forEach((p: any, i: number) => {
-      addNode(`paper-${i}`, p.title, "paper", p.summary);
+    const papers = Array.isArray(litResult.papers) ? litResult.papers : [];
+    papers.filter(Boolean).forEach((p: any, i: number) => {
+      const title = typeof p === "string" ? p : (p.title || `Paper ${i + 1}`);
+      const year = p?.year || "";
+      const summary = typeof p?.summary === "string" ? p.summary : typeof p?.abstract === "string" ? p.abstract : undefined;
+      addNode(`paper-${i}`, title, "paper", summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
-      addLog(`Found: "${p.title}" (${p.year})`, "info");
+      addLog(`Found: "${title}"${year ? ` (${year})` : ""}`, "info");
     });
-    (litResult.concepts || []).forEach((c: string, i: number) => {
-      addNode(`concept-${i}`, c, "concept");
-      edges.push({ from: `paper-${i % papers.length}`, to: `concept-${i}` });
-      edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
+    const concepts = Array.isArray(litResult.concepts) ? litResult.concepts : [];
+    concepts.filter(Boolean).forEach((c: any, i: number) => {
+      const label = typeof c === "string" ? c : (c.name || c.title || `Concept ${i + 1}`);
+      addNode(`concept-${i}`, label, "concept");
+      if (papers.length > 0) {
+        edges.push({ from: `paper-${i % papers.length}`, to: `concept-${i}` });
+        edges.push({ from: `paper-${(i + 1) % papers.length}`, to: `concept-${i}` });
+      }
     });
     addLog(`Indexed ${papers.length} papers, identified ${(litResult.concepts || []).length} key concepts`, "success");
     setStage("literature", "done", `${papers.length} papers`);
