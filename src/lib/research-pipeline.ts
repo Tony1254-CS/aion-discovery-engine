@@ -185,14 +185,21 @@ export async function runResearchPipeline(
     }
     emit();
 
-    const litResult = await callAgent("literature", query, datasetContext ? { dataset: datasetContext } : undefined);
+    const [litResult, literatureSearchPapers] = await Promise.all([
+      callAgent("literature", query, datasetContext ? { dataset: datasetContext } : undefined),
+      callLiteratureSearch(query).catch(() => []),
+    ]);
     if (signal.aborted) return;
-    researchContext.literature = litResult;
+    const mergedLiteraturePapers = literatureSearchPapers.length > 0 ? literatureSearchPapers : (Array.isArray(litResult.papers) ? litResult.papers : []);
+    researchContext.literature = {
+      ...litResult,
+      papers: mergedLiteraturePapers,
+    };
 
-    const papers = Array.isArray(litResult.papers) ? litResult.papers : [];
+    const papers = mergedLiteraturePapers;
     papers.filter(Boolean).forEach((p: any, i: number) => {
       const title = typeof p === "string" ? p : (p.title || `Paper ${i + 1}`);
-      const year = p?.year || "";
+      const year = p?.year || (typeof p?.date === "string" ? p.date.slice(0, 4) : "");
       const summary = typeof p?.summary === "string" ? p.summary : typeof p?.abstract === "string" ? p.abstract : undefined;
       addNode(`paper-${i}`, title, "paper", summary);
       if (i > 0) edges.push({ from: `paper-${Math.floor(Math.random() * i)}`, to: `paper-${i}` });
