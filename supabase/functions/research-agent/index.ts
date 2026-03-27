@@ -16,6 +16,10 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_FAST = "llama-3.1-8b-instant";
 const GROQ_BALANCED = "llama-3.3-70b-versatile";
 
+// Hugging Face backup (FREE tier)
+const HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions";
+const HF_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+
 const STAGES = [
   "literature", "gaps", "hypotheses", "experiment", "paper", "refine",
   "peer-review", "competing-hypotheses", "research-gaps", "research-proposal", "debate",
