@@ -15,7 +15,7 @@ serve(async (req) => {
 
     let systemPrompt = "";
     let userPrompt = "";
-    let model = "google/gemini-2.0-flash-001";
+    let model = "meta-llama/llama-3.3-70b-instruct:free";
     let maxTokens = 4096;
 
     switch (stage) {
