@@ -59,7 +59,7 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
             }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${typeColors[h.type]} flex items-center justify-center shrink-0`}>
+              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${typeColors[safeType]} flex items-center justify-center shrink-0`}>
                 <span className="text-[10px] font-bold text-white uppercase">{h.type[0]}</span>
               </div>
               <div className="flex-1 min-w-0">
