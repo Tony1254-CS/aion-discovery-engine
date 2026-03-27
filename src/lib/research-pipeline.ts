@@ -49,8 +49,8 @@ type UpdateCb = (data: {
 }) => void;
 
 let lastCallTime = 0;
-const MIN_CALL_INTERVAL = 1200;
-const RATE_LIMIT_RETRY_DELAYS = [3000, 6000, 9000];
+const MIN_CALL_INTERVAL = 2500;
+const RATE_LIMIT_RETRY_DELAYS = [5000, 10000, 15000];
 
 const isRateLimitError = (message: string) =>
   message.includes("429") || message.toLowerCase().includes("rate limit");

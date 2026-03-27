@@ -91,57 +91,57 @@ const buildFallbackResult = (stage: Stage, query: string, context: any) => {
 const getStageConfig = (stage: Stage, query: string, context: any) => {
   const configs: Record<Stage, { model: string; maxTokens: number; systemPrompt: string; userPrompt: string }> = {
     literature: {
-      model: GOOGLE_BALANCED, maxTokens: 2600,
-      systemPrompt: "You are a scientific literature review agent. Return concise structured JSON with real papers when possible. Never invent DOIs. Required keys: papers, concepts, synthesis.",
-      userPrompt: `Research question: "${query}"\nReturn 8-10 relevant papers, 5 concepts, and a concise synthesis.`,
+      model: GOOGLE_BALANCED, maxTokens: 4000,
+      systemPrompt: "You are a scientific literature review agent. Return concise structured JSON with real papers when possible. Never invent DOIs. Required keys: papers (array of {title, authors, year, journal, doi, abstract}), concepts (array of strings), synthesis (string).",
+      userPrompt: `Research question: "${query}"\nReturn 8-10 relevant papers, 5 concepts, and a detailed synthesis.`,
     },
     gaps: {
-      model: GOOGLE_FAST, maxTokens: 1400,
-      systemPrompt: "Identify 4-5 specific research gaps from the provided literature context. Return valid JSON with key: gaps.",
+      model: GOOGLE_FAST, maxTokens: 2000,
+      systemPrompt: "Identify 4-5 specific research gaps from the provided literature context. Return valid JSON with key: gaps (array of {title, description, relevance}).",
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}`,
     },
     hypotheses: {
-      model: GOOGLE_FAST, maxTokens: 1400,
-      systemPrompt: "Generate 3 novel, testable hypotheses. Return valid JSON with key: hypotheses.",
+      model: GOOGLE_FAST, maxTokens: 2000,
+      systemPrompt: "Generate 3 novel, testable hypotheses. Return valid JSON with key: hypotheses (array of {title, description, predictedOutcome, approach}).",
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}`,
     },
     experiment: {
-      model: GOOGLE_FAST, maxTokens: 2000,
-      systemPrompt: "Design a concise rigorous experiment and return valid JSON with keys: methodology, dataDescription, results, figures.",
+      model: GOOGLE_FAST, maxTokens: 3000,
+      systemPrompt: "Design a rigorous experiment. Return valid JSON with keys: methodology (string), dataDescription (string), results ({pValue, effectSize, sampleSize, keyFinding, secondaryFindings, xAxisLabel, yAxisLabel, figureTitle}), figures (array).",
       userPrompt: `Research question: "${query}"\nHypothesis: ${JSON.stringify(context?.hypothesis)}`,
     },
     paper: {
-      model: GOOGLE_LONGFORM, maxTokens: 7000,
-      systemPrompt: "Write a publication-style research paper draft. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references. Concise but complete. Do not invent DOIs.",
-      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete structured draft.`,
+      model: GOOGLE_LONGFORM, maxTokens: 8192,
+      systemPrompt: "Write a publication-style research paper draft. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references. Be thorough and detailed. Do not invent DOIs.",
+      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed structured draft.`,
     },
     refine: {
-      model: GOOGLE_LONGFORM, maxTokens: 5000,
-      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys.",
+      model: GOOGLE_LONGFORM, maxTokens: 6000,
+      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.",
       userPrompt: `User request: "${query}"\nCurrent paper: ${JSON.stringify(context?.paper)}`,
     },
     "peer-review": {
-      model: GOOGLE_FAST, maxTokens: 1400,
-      systemPrompt: "Review the paper critically and return valid JSON with keys: strengths, weaknesses, suggestions, overallScore, verdict.",
+      model: GOOGLE_FAST, maxTokens: 2000,
+      systemPrompt: "Review the paper critically. Return valid JSON with keys: strengths (array of strings), weaknesses (array of strings), suggestions (array of {text, section}), overallScore (number 1-10), verdict (string).",
       userPrompt: `Paper to review: ${JSON.stringify(context?.paper)}`,
     },
     "competing-hypotheses": {
-      model: GOOGLE_FAST, maxTokens: 1600,
-      systemPrompt: "Generate exactly 3 competing hypotheses (primary, alternative, null). Return valid JSON with keys: hypotheses, noveltyScore, closestWork, noveltyDifference.",
+      model: GOOGLE_FAST, maxTokens: 2500,
+      systemPrompt: "Generate exactly 3 competing hypotheses (primary, alternative, null). Return valid JSON with keys: hypotheses (array of {type, title, description, predictedOutcome, approach, pValue, effectSize, verdict}), noveltyScore (number 0-100), closestWork (string), noveltyDifference (string).",
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}`,
     },
     "research-gaps": {
-      model: GOOGLE_FAST, maxTokens: 2000,
-      systemPrompt: "Identify 4-5 post-paper research gaps and next steps. Return valid JSON with key: gaps.",
+      model: GOOGLE_FAST, maxTokens: 3000,
+      systemPrompt: "Identify 4-5 post-paper research gaps and next steps. Return valid JSON with key: gaps (array of {title, description, type, suggestions}).",
       userPrompt: `Research question: "${query}"\nPaper context: ${JSON.stringify(context)}`,
     },
     "research-proposal": {
-      model: GOOGLE_FAST, maxTokens: 2200,
-      systemPrompt: "Write a concise research proposal and return valid JSON with key: proposal.",
+      model: GOOGLE_FAST, maxTokens: 3000,
+      systemPrompt: "Write a detailed research proposal. Return valid JSON with key: proposal (a string containing the full proposal text, NOT an object).",
       userPrompt: `Gap: ${JSON.stringify(context?.gap)}\nSuggestion: ${JSON.stringify(context?.suggestion)}`,
     },
     debate: {
-      model: GOOGLE_FAST, maxTokens: 1200,
+      model: GOOGLE_FAST, maxTokens: 2000,
       systemPrompt: context?.systemPrompt || "You are a scientific debater.",
       userPrompt: `${(context?.history || []).map((m: any) => m.content).join("\n\n")}\n\nNow respond in your role. Research question: "${query}"`,
     },
@@ -257,22 +257,22 @@ serve(async (req) => {
     let aiResult: string | null = null;
     let usedModel = model;
 
-    // 1st: Google AI Studio (FREE, generous limits)
-    if (GOOGLE_AI_API_KEY) {
-      aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
-      if (aiResult) usedModel = `google/${model}`;
-    }
-
-    // 2nd: Hugging Face / DeepSeek-V3 (FREE, good quality)
-    if (!aiResult && HUGGINGFACE_API_KEY) {
-      console.log("Google AI unavailable, trying HuggingFace backup...");
+    // 1st: Hugging Face / DeepSeek-V3 (FREE, good quality, reliable)
+    if (HUGGINGFACE_API_KEY) {
       aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
       if (aiResult) usedModel = "hf/deepseek-v3";
     }
 
+    // 2nd: Google AI Studio (FREE, but quota may be exhausted)
+    if (!aiResult && GOOGLE_AI_API_KEY) {
+      console.log("HuggingFace unavailable, trying Google AI...");
+      aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
+      if (aiResult) usedModel = `google/${model}`;
+    }
+
     // 3rd: Groq (FREE, fast but very limited TPM)
     if (!aiResult && GROQ_API_KEY) {
-      console.log("HuggingFace unavailable, trying Groq backup...");
+      console.log("Google AI unavailable, trying Groq...");
       aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
       if (aiResult) usedModel = "groq/llama";
     }
