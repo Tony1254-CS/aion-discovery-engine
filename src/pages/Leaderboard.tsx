@@ -69,8 +69,8 @@ export default function Leaderboard() {
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-50 bg-[hsl(var(--aion-surface)/0.75)] backdrop-blur-2xl border-b border-border/40"
       >
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
@@ -83,14 +83,14 @@ export default function Leaderboard() {
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
                 <Beaker className="h-3 w-3 text-primary-foreground" />
               </div>
-              <span className="text-sm font-bold text-foreground tracking-tight font-display">AION</span>
+              <span className="text-sm font-bold text-foreground tracking-tight font-display hidden sm:inline">AION</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Challenge Leaderboard</span>
+            <span className="text-xs sm:text-sm font-semibold text-foreground">Leaderboard</span>
           </div>
-          <div className="w-20" />
+          <div className="w-10 sm:w-20" />
         </div>
       </motion.div>
 
