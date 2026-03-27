@@ -72,8 +72,8 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{h.description}</p>
                 <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[10px] font-mono text-muted-foreground">p = {h.pValue < 0.001 ? "<.001" : h.pValue.toFixed(4)}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground">d = {h.effectSize.toFixed(3)}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">p = {h.pValue != null ? (h.pValue < 0.001 ? "<.001" : h.pValue.toFixed(4)) : "N/A"}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">d = {h.effectSize != null ? h.effectSize.toFixed(3) : "N/A"}</span>
                 </div>
               </div>
             </div>
