@@ -66,7 +66,7 @@ serve(async (req) => {
         break;
 
       case "paper":
-        model = "google/gemini-2.5-pro-preview-06-05";
+        model = "nvidia/nemotron-3-super-120b-a12b:free";
         maxTokens = 65536;
         systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper spanning 14-15 pages. Use formal academic language. Every section MUST be thorough — this is non-negotiable.
 
