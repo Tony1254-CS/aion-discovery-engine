@@ -19,6 +19,9 @@ const GROQ_BALANCED = "llama-3.3-70b-versatile";
 // Hugging Face backup (FREE tier)
 const HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions";
 const HF_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const LOVABLE_FAST = "google/gemini-3-flash-preview";
+const LOVABLE_LONGFORM = "google/gemini-2.5-pro";
 
 const STAGES = [
   "literature", "gaps", "hypotheses", "experiment", "paper", "refine",
@@ -41,18 +44,45 @@ const parseJsonContent = (content: string) => {
 
 const buildFallbackPaper = (query: string, context: any) => {
   const literature = context?.literature;
+  const hypotheses = Array.isArray(context?.competingHypotheses)
+    ? context.competingHypotheses
+    : Array.isArray(context?.hypotheses)
+      ? context.hypotheses
+      : [];
+  const experiment = context?.experiment;
+  const experimentResults = experiment?.results;
   const references = (literature?.papers || []).slice(0, 12).map((paper: any) => ({
     text: `${paper.authors || "Unknown author"} (${paper.year || paper.date?.slice?.(0, 4) || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || paper.source || "Unknown journal"}.${paper.url ? ` ${paper.url}` : ""}`.trim(),
   }));
+
+  const hypothesisSummary = hypotheses.length > 0
+    ? hypotheses.slice(0, 3).map((hyp: any, index: number) => {
+      const title = hyp?.title || `Hypothesis ${index + 1}`;
+      const description = hyp?.description || "Description unavailable.";
+      const predictedOutcome = hyp?.predictedOutcome || "Predicted outcome unavailable.";
+      return `${index + 1}. ${title}: ${description} Expected outcome: ${predictedOutcome}`;
+    }).join("\n\n")
+    : "The hypothesis generation stage produced provisional explanatory candidates, but the provider response was incomplete.";
+
+  const methodsText = context?.experiment?.methodology || "A structured computational methodology was prepared, but the provider response was incomplete.";
+  const resultsText = [
+    experimentResults?.keyFinding || "The experimental stage produced a provisional result.",
+    typeof experimentResults?.pValue === "number" ? `Reported p-value: ${experimentResults.pValue}.` : null,
+    typeof experimentResults?.effectSize === "number" ? `Estimated effect size: ${experimentResults.effectSize}.` : null,
+    typeof experimentResults?.sampleSize === "number" ? `Sample size: ${experimentResults.sampleSize}.` : null,
+  ].filter(Boolean).join(" ");
+
   return {
     title: `Preliminary research brief: ${query}`,
-    abstract: "This draft was generated as a fallback because the AI provider was temporarily unavailable.",
-    introduction: `This project investigates: ${query}. The system used a fallback draft.`,
-    literatureReview: literature?.synthesis || "Literature review temporarily unavailable.",
-    methods: context?.experiment?.methodology || "Methods temporarily unavailable.",
-    results: context?.experiment?.results?.keyFinding || "Results temporarily unavailable.",
-    discussion: "Discussion temporarily unavailable.",
-    conclusion: "Fallback draft — retry for full paper.",
+    abstract: `This draft was generated from the available research context because the upstream AI provider was temporarily unavailable. Even so, the system preserved the research question, literature synthesis, experimental framing, and available references so that the output remains readable, reviewable, and expandable in a later pass. The present brief addresses ${query} by combining retrieved sources with provisional analytic reasoning and should be treated as a structured draft rather than a final manuscript.`,
+    introduction: `This project investigates: ${query}. The current paper was assembled from the best available intermediate outputs after the primary generation provider became temporarily unavailable. Rather than returning a blank result, the system preserved the central research framing, the literature review context, and the experimental plan so that the user can still inspect a coherent argument.\n\nThe goal of this fallback paper is to maintain continuity in the research workflow. It therefore emphasizes traceability and usability over stylistic polish. The paper outlines why the question matters, what the available literature appears to suggest, which hypotheses were under consideration, and how the experiment was framed. This keeps the manuscript actionable for later refinement while still providing a readable artifact in the present session.`,
+    literatureReview: literature?.synthesis
+      ? `${literature.synthesis}\n\nThe retrieved literature was used as the backbone of the draft, with priority given to preserving the synthesis and source trail even though the long-form model response was unavailable.`
+      : "Literature review temporarily unavailable.",
+    methods: `${methodsText}\n\nThe methods section is preserved in this fallback because methodological continuity is more valuable than a blank paper. The intended design links the literature-driven hypotheses to an interpretable analysis pipeline that can be validated later with full model assistance or empirical data.`,
+    results: `${resultsText}\n\nThese results should be treated as provisional and interpreted as part of an interrupted generation pipeline rather than a final polished manuscript.`,
+    discussion: `The current draft suggests that the research question remains meaningful and that the surrounding literature contains enough structure to support deeper follow-up. However, because the primary long-form generation step did not complete normally, this discussion should be read as an interim interpretation rather than a final scholarly argument. The fallback still preserves the main reasoning chain: literature motivates the question, hypotheses structure the experiment, and the experiment offers a preliminary result that can inform future iterations.`,
+    conclusion: `Fallback draft generated successfully. The paper is incomplete relative to the intended full manuscript, but it preserves the literature context, a readable narrative, and a reference list so work is not lost. Re-running the workflow when providers are available should expand this into a fuller paper.`,
     references: references.length > 0 ? references : [{ text: "References will populate after retry." }],
   };
 };
@@ -235,6 +265,36 @@ async function callHuggingFace(apiKey: string, messages: any[], maxTokens: numbe
   }
 }
 
+async function callLovableAI(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
+  try {
+    const model = maxTokens >= 8000 ? LOVABLE_LONGFORM : LOVABLE_FAST;
+    const response = await fetch(LOVABLE_AI_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: Math.max(maxTokens, 4000),
+      }),
+    });
+
+    if (!response.ok) {
+      const t = await response.text();
+      console.error(`Lovable AI failed (${response.status}): ${t.slice(0, 200)}`);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (err) {
+    console.error("Lovable AI error:", err);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -258,7 +318,8 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
     const HUGGINGFACE_API_KEY = Deno.env.get("HUGGINGFACE_API_KEY");
-    if (!GOOGLE_AI_API_KEY && !GROQ_API_KEY && !HUGGINGFACE_API_KEY) throw new Error("No AI API keys configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!GOOGLE_AI_API_KEY && !GROQ_API_KEY && !HUGGINGFACE_API_KEY && !LOVABLE_API_KEY) throw new Error("No AI API keys configured");
 
     const { model, maxTokens, systemPrompt, userPrompt } = getStageConfig(stage, query, context);
     const messages = [
@@ -287,6 +348,13 @@ serve(async (req) => {
       console.log("Google AI unavailable, trying Groq...");
       aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
       if (aiResult) usedModel = "groq/llama";
+    }
+
+    // 4th: Lovable AI gateway fallback for reliability
+    if (!aiResult && LOVABLE_API_KEY) {
+      console.log("External providers unavailable, trying Lovable AI...");
+      aiResult = await callLovableAI(LOVABLE_API_KEY, messages, maxTokens);
+      if (aiResult) usedModel = maxTokens >= 8000 ? LOVABLE_LONGFORM : LOVABLE_FAST;
     }
 
     // Both failed → structured fallback
