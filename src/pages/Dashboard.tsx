@@ -85,9 +85,9 @@ export default function Dashboard() {
   const progress = stages.length ? (stages.filter((s) => s.status === "done").length / stages.length) * 100 : 0;
 
   const sidebarContent = (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       {/* Scrollable area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-5 pb-2">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-2 sm:p-5">
         <div className="flex items-center justify-between mb-5 sm:mb-6">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
@@ -192,7 +192,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="h-screen bg-background flex flex-col md:flex-row overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-background md:flex-row">
       {/* Mobile drawer */}
       {isMobile && (
         <AnimatePresence>
@@ -202,7 +202,7 @@ export default function Dashboard() {
                 className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileDrawerOpen(false)} />
               <motion.aside initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
                 transition={{ duration: 0.3, ease: [0.25, 0.4, 0, 1] }}
-                className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[340px] bg-[hsl(var(--aion-surface))] border-r border-border/60 overflow-hidden">
+                className="fixed inset-y-0 left-0 z-50 h-full w-[85vw] max-w-[340px] overflow-hidden border-r border-border/60 bg-[hsl(var(--aion-surface))]">
                 {sidebarContent}
               </motion.aside>
             </>
@@ -216,17 +216,17 @@ export default function Dashboard() {
           {sidebarOpen && (
             <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 340, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.25, 0.4, 0, 1] }}
-              className="shrink-0 overflow-hidden border-r border-border/60 bg-[hsl(var(--aion-surface))]">
-              <div className="w-[340px]">{sidebarContent}</div>
+              className="h-full min-h-0 shrink-0 overflow-hidden border-r border-border/60 bg-[hsl(var(--aion-surface))]">
+              <div className="flex h-full min-h-0 w-[340px]">{sidebarContent}</div>
             </motion.aside>
           )}
         </AnimatePresence>
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 border-b border-border/40 bg-[hsl(var(--aion-surface)/0.8)] backdrop-blur-xl">
+        <div className="flex shrink-0 items-center gap-2 border-b border-border/40 bg-[hsl(var(--aion-surface)/0.8)] px-3 py-2.5 backdrop-blur-xl sm:gap-3 sm:px-5 sm:py-3">
           <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
             onClick={() => isMobile ? setMobileDrawerOpen(!mobileDrawerOpen) : setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
@@ -257,7 +257,7 @@ export default function Dashboard() {
         </div>
 
         {/* Content grid */}
-        <div className="flex-1 p-3 sm:p-4 grid grid-rows-[auto_1fr_auto] lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto] gap-3 sm:gap-4 min-h-0">
+        <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr_auto] gap-3 overflow-hidden p-3 sm:gap-4 sm:p-4 lg:grid-cols-[1fr_380px] lg:grid-rows-[1fr_auto]">
           {paperReady && (
             <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.98 }}
               onClick={() => navigate("/paper", { state: { query, paper, competingHyps, warnings, stats, noveltyScore, closestWork, noveltyDiff, researchGaps } })}
@@ -265,7 +265,7 @@ export default function Dashboard() {
               <FileText className="h-4 w-4" /> View Research Paper
             </motion.button>
           )}
-          <div className="min-h-[200px] sm:min-h-[300px] lg:row-span-1 flex flex-col gap-3 sm:gap-4">
+          <div className="flex min-h-[200px] flex-col gap-3 sm:min-h-[300px] sm:gap-4 lg:row-span-1">
             <KnowledgeGraph nodes={nodes} edges={edges} />
 
             <AnimatePresence>
@@ -282,7 +282,7 @@ export default function Dashboard() {
               {showMetaAnalysis && <MetaAnalysisBuilder />}
             </AnimatePresence>
           </div>
-          <div className="lg:row-span-2 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin space-y-3 sm:space-y-4">
+          <div className="min-h-0 space-y-3 overflow-y-auto pr-1 sm:space-y-4 lg:row-span-2 lg:max-h-none">
             {pipelineError && (
               <div className="glass-panel border border-destructive/30 bg-destructive/5 p-3 sm:p-4">
                 <div className="flex items-start justify-between gap-3">
