@@ -243,9 +243,10 @@ export async function runResearchPipeline(
     });
 
     // Novelty
-    noveltyScore = hypResult.noveltyScore ?? 0.65;
-    closestWork = hypResult.closestWork || "";
-    noveltyDifference = hypResult.noveltyDifference || "";
+    const rawNovelty = typeof hypResult.noveltyScore === "number" ? hypResult.noveltyScore : 0.65;
+    noveltyScore = rawNovelty > 1 ? rawNovelty / 100 : rawNovelty; // normalize percentage to 0-1
+    closestWork = typeof hypResult.closestWork === "string" ? hypResult.closestWork : "";
+    noveltyDifference = typeof hypResult.noveltyDifference === "string" ? hypResult.noveltyDifference : "";
     if (noveltyScore > 0) {
       addLog(`Novelty Score: ${Math.round(noveltyScore * 100)}%`, "success");
     }

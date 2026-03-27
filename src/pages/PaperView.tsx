@@ -58,16 +58,23 @@ export default function PaperView() {
     finally { setSubmitting(false); }
   };
 
-  const title = paper?.title || "Research Paper";
-  const abstract = paper?.abstract || "No abstract generated.";
-  const introduction = paper?.introduction || "No introduction generated.";
-  const literatureReview = paper?.literatureReview || paper?.literature_review || "";
-  const methods = paper?.methods || "No methods generated.";
-  const results = paper?.results || "No results generated.";
-  const discussion = paper?.discussion || "No discussion generated.";
-  const conclusion = paper?.conclusion || "";
-  const references = paper?.references || [];
-  const researchGaps = state?.researchGaps || [];
+  // Safely convert any value to a renderable string
+  const safeStr = (val: any, fallback: string): string => {
+    if (typeof val === "string") return val;
+    if (val && typeof val === "object") return JSON.stringify(val, null, 2);
+    return fallback;
+  };
+
+  const title = safeStr(paper?.title, "Research Paper");
+  const abstract = safeStr(paper?.abstract, "No abstract generated.");
+  const introduction = safeStr(paper?.introduction, "No introduction generated.");
+  const literatureReview = safeStr(paper?.literatureReview || paper?.literature_review, "");
+  const methods = safeStr(paper?.methods, "No methods generated.");
+  const results = safeStr(paper?.results, "No results generated.");
+  const discussion = safeStr(paper?.discussion, "No discussion generated.");
+  const conclusion = safeStr(paper?.conclusion, "");
+  const references = Array.isArray(paper?.references) ? paper.references : [];
+  const researchGaps = Array.isArray(state?.researchGaps) ? state.researchGaps : [];
 
   const sections: { title: string; content: string; showFigures?: boolean }[] = [
     { title: "Abstract", content: abstract },
