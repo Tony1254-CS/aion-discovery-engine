@@ -38,8 +38,10 @@ export default function CompetingHypotheses({ hypotheses, onSelect, selected }: 
         Competing Hypotheses
       </h3>
 
-      {hypotheses.map((h, i) => {
-        const v = verdictConfig[h.verdict];
+      {hypotheses.filter(Boolean).map((h, i) => {
+        const safeVerdict = (h.verdict && verdictConfig[h.verdict]) ? h.verdict : "weak";
+        const safeType = (h.type && typeColors[h.type]) ? h.type : "primary";
+        const v = verdictConfig[safeVerdict];
         const VIcon = v.icon;
         const isSelected = selected === i;
 
