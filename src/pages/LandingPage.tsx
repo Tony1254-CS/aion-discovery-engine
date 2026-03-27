@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing, Lightbulb } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import AionShowcase from "@/components/landing/AionShowcase";
 import LiteratureMonitor from "@/components/LiteratureMonitor";
+import IdeaReview from "@/components/IdeaReview";
 import { useNavigate } from "react-router-dom";
 
 const exampleQueries = [
