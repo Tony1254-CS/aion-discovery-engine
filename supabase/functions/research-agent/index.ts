@@ -112,8 +112,20 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
     },
     paper: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
-      systemPrompt: "Write a publication-style research paper draft. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references. Be thorough and detailed. Do not invent DOIs.",
-      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed structured draft.`,
+      systemPrompt: `Write a publication-quality research paper. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references.
+
+IMPORTANT LENGTH REQUIREMENTS:
+- abstract: 250-300 words
+- introduction: 800+ words with clear problem statement, significance, and research objectives
+- literatureReview: 1000+ words covering key studies, theoretical frameworks, and gaps
+- methods: 800+ words with detailed methodology, study design, data collection, variables, sampling, and analysis techniques
+- results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
+- discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
+- conclusion: 300+ words
+- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal. DOI if known." Do not invent DOIs or papers.
+
+Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
+      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
     },
     refine: {
       model: GOOGLE_LONGFORM, maxTokens: 6000,
