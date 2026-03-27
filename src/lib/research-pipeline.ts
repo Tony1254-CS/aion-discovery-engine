@@ -377,9 +377,15 @@ export async function runResearchPipeline(
         results: paperResult.results || researchContext.experiment?.results?.keyFinding || "Results unavailable in the first pass.",
         discussion: paperResult.discussion || "Discussion unavailable in the first pass.",
         conclusion: paperResult.conclusion || "Conclusion unavailable in the first pass.",
-        references: paperResult.references || [],
+        references: Array.isArray(paperResult.references) && paperResult.references.length > 0
+          ? paperResult.references
+          : buildReferenceList(researchContext.literature?.papers || []),
       };
       emit();
+    }
+
+    if (!Array.isArray(paperResult.references) || paperResult.references.length === 0) {
+      paperResult.references = buildReferenceList(researchContext.literature?.papers || []);
     }
 
     // Log paper stats
