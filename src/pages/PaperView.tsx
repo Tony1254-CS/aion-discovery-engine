@@ -335,7 +335,14 @@ export default function PaperView() {
               <Section title="References">
                 <div className="space-y-3">
                   {references.map((ref: any, i: number) => {
-                    const refText = ref.text || ref;
+                    const authors = Array.isArray(ref?.authors) ? ref.authors.join(", ") : ref?.authors;
+                    const refText = typeof ref === "string"
+                      ? ref
+                      : typeof ref?.text === "string"
+                        ? ref.text
+                        : [authors, ref?.year ? `(${ref.year})` : null, ref?.title, ref?.journal]
+                            .filter(Boolean)
+                            .join(". ") || JSON.stringify(ref);
                     const doiMatch = typeof refText === "string" ? refText.match(/(https?:\/\/doi\.org\/[^\s]+|10\.\d{4,}\/[^\s]+)/i) : null;
                     return (
                       <div key={i} className="flex gap-3 text-xs text-muted-foreground group">
