@@ -319,13 +319,33 @@ export default function Dashboard() {
             </AnimatePresence>
           </div>
           <div className="lg:row-span-2 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin space-y-4">
+            {pipelineError && (
+              <div className="glass-panel border border-destructive/30 bg-destructive/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-destructive/80">Pipeline paused</p>
+                    <p className="mt-2 text-sm text-foreground">
+                      {pipelineError.includes("429")
+                        ? "The free AI provider is temporarily rate-limited. The app now waits and retries automatically, but you may still need to try again in a minute if the daily free quota is saturated."
+                        : pipelineError}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/", { state: { query, dataset } })}
+                    className="rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            )}
+
             {competingHyps.length > 0 ? (
               <CompetingHypotheses hypotheses={competingHyps} selected={selectedCompeting} onSelect={setSelectedCompeting} />
             ) : (
               <HypothesisCards hypotheses={hypotheses} selected={selectedHyp} onSelect={setSelectedHyp} />
             )}
 
-            {/* Tool buttons */}
             {competingHyps.length > 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2">
                 <button
