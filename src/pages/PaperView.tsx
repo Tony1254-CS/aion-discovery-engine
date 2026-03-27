@@ -238,7 +238,7 @@ export default function PaperView() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.5 }}
-            className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2"
+            className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-tight mb-2"
           >
             {title}
           </motion.h1>
