@@ -92,8 +92,8 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
   const configs: Record<Stage, { model: string; maxTokens: number; systemPrompt: string; userPrompt: string }> = {
     literature: {
       model: GOOGLE_BALANCED, maxTokens: 6000,
-      systemPrompt: "You are a scientific literature review agent. Return structured JSON with real, verifiable papers. Never invent DOIs. Required keys: papers (array of {title, authors, year, journal, doi, abstract}), concepts (array of strings), synthesis (string). Include as many real papers as possible (aim for 15-20). The synthesis should be comprehensive (at least 500 words).",
-      userPrompt: `Research question: "${query}"\nReturn 15-20 relevant real papers from the literature, 8 key concepts, and a thorough synthesis paragraph covering the state of knowledge, debates, and evolution of the field.`,
+      systemPrompt: "You are a scientific literature review agent. Return structured JSON with real, verifiable papers. NEVER include DOIs — AI-generated DOIs are almost always fake. Required keys: papers (array of {title, authors, year, journal, abstract}), concepts (array of strings), synthesis (string). Include 15-20 real papers. The synthesis should be comprehensive (500+ words).",
+      userPrompt: `Research question: "${query}"\nReturn 15-20 relevant real papers (NO DOIs), 8 key concepts, and a thorough synthesis.`,
     },
     gaps: {
       model: GOOGLE_FAST, maxTokens: 2000,
