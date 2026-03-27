@@ -85,92 +85,94 @@ export default function Dashboard() {
   const progress = stages.length ? (stages.filter((s) => s.status === "done").length / stages.length) * 100 : 0;
 
   const sidebarContent = (
-    <div className="p-4 sm:p-5 h-full flex flex-col overflow-y-auto scrollbar-thin">
-      <div className="flex items-center justify-between mb-5 sm:mb-6">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
-            <Beaker className="h-4 w-4 text-primary-foreground" />
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Scrollable area */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-5 pb-2">
+        <div className="flex items-center justify-between mb-5 sm:mb-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
+              <Beaker className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-foreground tracking-tight font-display">AION</span>
           </div>
-          <span className="font-bold text-foreground tracking-tight font-display">AION</span>
-        </div>
-        <div className="flex items-center gap-1">
-          {isMobile && (
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => setMobileDrawerOpen(false)}
-              className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground">
-              <X className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            {isMobile && (
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setMobileDrawerOpen(false)}
+                className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground">
+                <X className="h-4 w-4" />
+              </motion.button>
+            )}
+            <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => navigate("/")}
+              className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Back to Home">
+              <Home className="h-4 w-4" />
             </motion.button>
-          )}
-          <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => navigate("/")}
-            className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" title="Back to Home">
-            <Home className="h-4 w-4" />
-          </motion.button>
+          </div>
         </div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-5 sm:mb-6 glass-panel p-3 sm:p-4">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-2">Research Query</p>
+          <p className="text-xs sm:text-sm text-foreground leading-relaxed font-light">{query}</p>
+        </motion.div>
+
+        {dataset && (
+          <>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+              className="mb-3 glass-panel p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                <FileSpreadsheet className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Dataset</p>
+                <p className="text-xs text-foreground truncate">{dataset.name}</p>
+                <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
+              </div>
+            </motion.div>
+            {dataset.type !== "xlsx" && dataset.type !== "xls" && (
+              <div className="mb-6"><DatasetPreview dataset={dataset} /></div>
+            )}
+          </>
+        )}
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-5 sm:mb-6">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Progress</p>
+            <p className="text-xs font-mono text-primary font-bold">{Math.round(progress)}%</p>
+          </div>
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full"
+              style={{ background: `linear-gradient(90deg, hsl(var(--aion-gradient-start)), hsl(var(--aion-gradient-end)), hsl(var(--aion-gradient-accent)))`, backgroundSize: "200% 100%" }}
+              animate={{ width: `${progress}%`, backgroundPosition: ["0% 0%", "100% 0%"] }}
+              transition={{ width: { duration: 0.5, ease: "easeOut" }, backgroundPosition: { duration: 3, repeat: Infinity, ease: "linear" } }}
+            />
+          </div>
+        </motion.div>
+
+        <Timeline stages={stages} />
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-4">
+          <HumanCheckpoints autoMode={autoMode} onToggleAuto={setAutoMode} competingHyps={competingHyps}
+            onSelectHypothesis={setSelectedCompeting} selectedHyp={selectedCompeting} currentStage={currentStage} />
+        </motion.div>
+
+        <AnimatePresence>
+          {noveltyScore > 0 && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4">
+              <NoveltyScore score={noveltyScore} closestWork={closestWork} difference={noveltyDiff} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {warnings.length > 0 && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4">
+              <FailureTransparency warnings={warnings} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-5 sm:mb-6 glass-panel p-3 sm:p-4">
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-2">Research Query</p>
-        <p className="text-xs sm:text-sm text-foreground leading-relaxed font-light">{query}</p>
-      </motion.div>
-
-      {dataset && (
-        <>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
-            className="mb-3 glass-panel p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
-              <FileSpreadsheet className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Dataset</p>
-              <p className="text-xs text-foreground truncate">{dataset.name}</p>
-              <p className="text-[10px] text-muted-foreground">{(dataset.size / 1024).toFixed(1)} KB · {dataset.type.toUpperCase()}</p>
-            </div>
-          </motion.div>
-          {dataset.type !== "xlsx" && dataset.type !== "xls" && (
-            <div className="mb-6"><DatasetPreview dataset={dataset} /></div>
-          )}
-        </>
-      )}
-
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-5 sm:mb-6">
-        <div className="flex items-center justify-between mb-2.5">
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Progress</p>
-          <p className="text-xs font-mono text-primary font-bold">{Math.round(progress)}%</p>
-        </div>
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-          <motion.div className="h-full rounded-full"
-            style={{ background: `linear-gradient(90deg, hsl(var(--aion-gradient-start)), hsl(var(--aion-gradient-end)), hsl(var(--aion-gradient-accent)))`, backgroundSize: "200% 100%" }}
-            animate={{ width: `${progress}%`, backgroundPosition: ["0% 0%", "100% 0%"] }}
-            transition={{ width: { duration: 0.5, ease: "easeOut" }, backgroundPosition: { duration: 3, repeat: Infinity, ease: "linear" } }}
-          />
-        </div>
-      </motion.div>
-
-      <Timeline stages={stages} />
-
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-4">
-        <HumanCheckpoints autoMode={autoMode} onToggleAuto={setAutoMode} competingHyps={competingHyps}
-          onSelectHypothesis={setSelectedCompeting} selectedHyp={selectedCompeting} currentStage={currentStage} />
-      </motion.div>
-
-      <AnimatePresence>
-        {noveltyScore > 0 && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4">
-            <NoveltyScore score={noveltyScore} closestWork={closestWork} difference={noveltyDiff} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {warnings.length > 0 && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4">
-            <FailureTransparency warnings={warnings} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex-1" />
-
-      <div className="space-y-2.5 mt-6">
+      {/* Sticky bottom buttons — always visible */}
+      <div className="shrink-0 p-4 sm:p-5 pt-2 space-y-2.5 border-t border-border/30 bg-[hsl(var(--aion-surface))]">
         <AnimatePresence>
           {paperReady && (
             <motion.button initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 15 }}
