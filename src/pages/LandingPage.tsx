@@ -92,7 +92,7 @@ export default function LandingPage() {
         transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/40"
       >
-        <div className="mx-auto max-w-5xl flex items-center justify-between px-6 py-4">
+        <div className="mx-auto max-w-5xl flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--aion-violet))] flex items-center justify-center glow-ring">
               <Beaker className="h-3.5 w-3.5 text-white" />
@@ -310,7 +310,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.8 }}
-            className="flex flex-wrap justify-center gap-12 sm:gap-16 mt-28"
+            className="flex flex-wrap justify-center gap-8 sm:gap-12 md:gap-16 mt-20 sm:mt-28"
           >
             {features.map(({ icon: Icon, label, desc }, i) => (
               <motion.div

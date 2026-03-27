@@ -83,7 +83,7 @@ function AnimatedStat({ value, suffix, label, delay }: { value: string; suffix: 
       {...scaleIn(delay)}
       className="text-center"
     >
-      <div className="text-4xl sm:text-5xl font-black aion-gradient-text font-display tabular-nums">
+      <div className="text-3xl sm:text-4xl md:text-5xl font-black aion-gradient-text font-display tabular-nums">
         {isInView ? value : "0"}{suffix}
       </div>
       <div className="mt-2 text-[11px] text-muted-foreground/60 uppercase tracking-[0.2em] font-medium">{label}</div>
@@ -193,7 +193,7 @@ export default function AionShowcase() {
         </div>
 
         {/* ════════ Stats Strip ════════ */}
-        <div className="flex justify-center gap-16 sm:gap-24">
+        <div className="flex justify-center gap-10 sm:gap-16 md:gap-24">
           {stats.map((s, i) => (
             <AnimatedStat key={s.label} {...s} delay={i * 0.12} />
           ))}

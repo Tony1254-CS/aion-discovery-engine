@@ -112,8 +112,8 @@ export default function PaperView() {
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-50 bg-[hsl(var(--aion-surface)/0.75)] backdrop-blur-2xl border-b border-border/40"
       >
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
@@ -126,31 +126,33 @@ export default function PaperView() {
             <motion.button
               whileHover={{ x: -2 }}
               onClick={() => navigate("/dashboard", { state: { query } })}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
             >
               <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
               Dashboard
             </motion.button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[hsl(var(--aion-gradient-start))] to-[hsl(var(--aion-gradient-end))] flex items-center justify-center glow-ring">
               <Beaker className="h-3 w-3 text-primary-foreground" />
             </div>
-            <span className="text-sm font-bold text-foreground tracking-tight font-display">AION</span>
+            <span className="text-sm font-bold text-foreground tracking-tight font-display hidden sm:inline">AION</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <PeerReview paper={paper} query={query} onPaperUpdate={setPaper} onReviewComplete={setPeerReviewData} />
-            <PaperPDFExporter paper={paper} query={query} />
-            <ReproducibilityExporter paper={paper} query={query} />
+            <div className="hidden sm:flex items-center gap-2">
+              <PaperPDFExporter paper={paper} query={query} />
+              <ReproducibilityExporter paper={paper} query={query} />
+            </div>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={submitted ? () => navigate("/leaderboard") : submitToLeaderboard}
               disabled={submitting || !paper}
-              className="aion-glow-button text-xs px-4 py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md disabled:opacity-50"
+              className="aion-glow-button text-[10px] sm:text-xs px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1.5 !rounded-xl !shadow-sm hover:!shadow-md disabled:opacity-50"
             >
               {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : submitted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Trophy className="h-3.5 w-3.5" />}
-              {submitting ? "Submitting…" : submitted ? "View Board" : "Submit"}
+              <span className="hidden sm:inline">{submitting ? "Submitting…" : submitted ? "View Board" : "Submit"}</span>
             </motion.button>
           </div>
         </div>
@@ -212,9 +214,9 @@ export default function PaperView() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto px-4 py-12 pb-28 relative z-10"
+        className="max-w-4xl mx-auto px-3 sm:px-4 py-8 sm:py-12 pb-28 relative z-10"
       >
-        <div className="glass-panel-hero p-8 sm:p-12">
+        <div className="glass-panel-hero p-5 sm:p-8 md:p-12">
           {/* Badges */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -236,7 +238,7 @@ export default function PaperView() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.5 }}
-            className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2"
+            className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-tight mb-2"
           >
             {title}
           </motion.h1>
