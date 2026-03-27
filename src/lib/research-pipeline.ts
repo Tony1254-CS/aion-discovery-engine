@@ -203,8 +203,10 @@ export async function runResearchPipeline(
     if (signal.aborted) return;
     researchContext.gaps = gapsResult.gaps;
 
-    (gapsResult.gaps || []).forEach((g: any, i: number) => {
-      addLog(`Gap ${i + 1}: ${g.title}`, "info");
+    const gaps = Array.isArray(gapsResult.gaps) ? gapsResult.gaps : [];
+    gaps.filter(Boolean).forEach((g: any, i: number) => {
+      const gTitle = typeof g === "string" ? g : (g.title || `Gap ${i + 1}`);
+      addLog(`Gap ${i + 1}: ${gTitle}`, "info");
     });
     addLog(`Identified ${(gapsResult.gaps || []).length} research gaps`, "success");
     setStage("gaps", "done", `${(gapsResult.gaps || []).length} gaps`);
