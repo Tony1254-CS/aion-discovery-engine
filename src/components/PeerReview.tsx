@@ -82,13 +82,21 @@ export default function PeerReview({ paper, query, onPaperUpdate, onReviewComple
 
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, x: 400 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 400 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-50 h-full w-[420px] max-w-[90vw] border-l border-border bg-background shadow-2xl flex flex-col"
-          >
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[59] bg-black/40 backdrop-blur-sm sm:bg-black/20"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, x: 400 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 400 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 z-[60] h-full w-full sm:w-[420px] sm:max-w-[90vw] border-l border-border bg-background shadow-2xl flex flex-col"
+            >
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-2.5">
                 <Shield className="h-5 w-5 text-primary" />
@@ -193,6 +201,7 @@ export default function PeerReview({ paper, query, onPaperUpdate, onReviewComple
               )}
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
