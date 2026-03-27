@@ -162,16 +162,20 @@ export default function AionShowcase() {
               AION is an <span className="text-white font-medium">executable research pipeline</span> — not a chatbot that writes essays.
               It reads scientific literature, formulates testable hypotheses with formal variables, matches real-world datasets,
               executes statistical code, tests competing explanations, and produces a fully reproducible paper
-              with interactive figures and verified results.
+              with interactive figures and verified results. It also features an{" "}
+              <span className="text-white font-medium">Idea & Proposal Peer Review</span> system — submit any research idea, abstract,
+              or draft and receive structured AI feedback with novelty scoring, similar published works with DOI links,
+              and actionable next steps to refine your research.
             </p>
 
             {/* Animated highlight features */}
-            <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-8 border-t border-white/[0.04]">
+            <div className="relative grid grid-cols-2 sm:grid-cols-5 gap-3 mt-8 pt-8 border-t border-white/[0.04]">
               {[
                 { icon: BookOpen, label: "Reads Literature" },
                 { icon: FlaskConical, label: "Tests Hypotheses" },
                 { icon: Code2, label: "Executes Code" },
                 { icon: Package, label: "Reproducible" },
+                { icon: MessageSquare, label: "Peer Review" },
               ].map(({ icon: Icon, label }, i) => (
                 <motion.div
                   key={label}
