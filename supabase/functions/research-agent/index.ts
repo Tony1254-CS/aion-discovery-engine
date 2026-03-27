@@ -42,7 +42,7 @@ const parseJsonContent = (content: string) => {
 const buildFallbackPaper = (query: string, context: any) => {
   const literature = context?.literature;
   const references = (literature?.papers || []).slice(0, 12).map((paper: any) => ({
-    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.${paper.doi ? ` https://doi.org/${paper.doi}` : ""}`.trim(),
+    text: `${paper.authors || "Unknown author"} (${paper.year || "n.d."}). ${paper.title || "Untitled"}. ${paper.journal || "Unknown journal"}.`.trim(),
   }));
   return {
     title: `Preliminary research brief: ${query}`,
