@@ -122,7 +122,7 @@ IMPORTANT LENGTH REQUIREMENTS:
 - results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
 - discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
 - conclusion: 300+ words
-- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal. DOI if known." Do not invent DOIs or papers.
+- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal, Volume(Issue), Pages." NEVER include DOIs — AI-generated DOIs are almost always fake and broken. Only cite real, verifiable papers.
 
 Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
