@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles, FlaskConical, Swords, BarChart3, Bell, X } from "lucide-react";
+import { ArrowLeft, Beaker, Home, Award, Trophy, Loader2, CheckCircle2, Sparkles, FlaskConical, Swords, BarChart3, Bell, X, Shield, AlertTriangle, Lightbulb } from "lucide-react";
 import PaperChat from "@/components/PaperChat";
 import PeerReview from "@/components/PeerReview";
 import ReproducibilityExporter from "@/components/ReproducibilityExporter";
