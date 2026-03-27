@@ -689,7 +689,6 @@ export default function IdeaReviewResults() {
     </div>
   );
 }
-            exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.25, 0.4, 0, 1] }}
             className="shrink-0 overflow-hidden border-r border-border/60 bg-[hsl(var(--aion-surface))]"
           >
