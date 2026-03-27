@@ -158,7 +158,7 @@ export default function Leaderboard() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ delay: rank * 0.04, ease: [0.25, 0.4, 0, 1] }}
                   whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                  className={`glass-panel-elevated p-4 sm:p-5 flex items-start gap-4 ${rank < 3 ? rankIcons[rank].ring : ""}`}
+                  className={`glass-panel-elevated p-3 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 ${rank < 3 ? rankIcons[rank].ring : ""}`}
                 >
                   {/* Rank */}
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm ${
