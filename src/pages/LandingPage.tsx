@@ -30,6 +30,7 @@ const ACCEPTED_TYPES = ".csv,.json,.xlsx,.xls,.tsv";
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState<"research" | "review">("research");
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; data: string; type: string } | null>(null);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
