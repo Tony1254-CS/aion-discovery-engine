@@ -15,7 +15,7 @@ serve(async (req) => {
 
     let systemPrompt = "";
     let userPrompt = "";
-    let model = "google/gemini-2.0-flash-001";
+    let model = "meta-llama/llama-3.3-70b-instruct:free";
     let maxTokens = 4096;
 
     switch (stage) {
@@ -66,7 +66,7 @@ serve(async (req) => {
         break;
 
       case "paper":
-        model = "google/gemini-2.5-pro-preview-06-05";
+        model = "nvidia/nemotron-3-super-120b-a12b:free";
         maxTokens = 65536;
         systemPrompt = `You are a senior academic paper writing agent. Write a COMPREHENSIVE, PUBLICATION-QUALITY research paper spanning 14-15 pages. Use formal academic language. Every section MUST be thorough — this is non-negotiable.
 
@@ -104,7 +104,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "refine":
-        model = "google/gemini-2.0-flash-001";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 16384;
         systemPrompt = `You are a research paper refinement agent. Given a completed paper and a user request, modify the specific section or aspect requested. Return the COMPLETE updated paper in the same JSON format. Maintain or increase the length and detail of all sections. The JSON must include ALL fields: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.`;
         userPrompt = `Current paper: ${JSON.stringify(context?.paper)}\nUser request: "${query}"`;
@@ -138,7 +138,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         break;
 
       case "research-gaps":
-        model = "google/gemini-2.0-flash-001";
+        model = "meta-llama/llama-3.3-70b-instruct:free";
         maxTokens = 8192;
         systemPrompt = `You are a research gap analysis agent. Given a completed research paper and its context, identify 4-5 specific research gaps and provide actionable next-step suggestions for each. 
 
