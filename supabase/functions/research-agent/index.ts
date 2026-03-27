@@ -128,8 +128,8 @@ Write as a serious academic paper, not a summary. Each section should be substan
       userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
     },
     refine: {
-      model: GOOGLE_LONGFORM, maxTokens: 6000,
-      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.",
+      model: GOOGLE_LONGFORM, maxTokens: 8192,
+      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references. Maintain or increase the length of each section. Keep all 15+ references and add more if relevant.",
       userPrompt: `User request: "${query}"\nCurrent paper: ${JSON.stringify(context?.paper)}`,
     },
     "peer-review": {
