@@ -53,7 +53,7 @@ function ScoreRing({ score, label, size = 90, delay = 0 }: { score: number; labe
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
-      className="flex flex-col items-center gap-2 glass-panel rounded-2xl p-4 flex-1 min-w-[100px]"
+      className="flex flex-col items-center gap-1.5 sm:gap-2 glass-panel rounded-2xl p-3 sm:p-4 flex-1 min-w-[80px] sm:min-w-[100px]"
       style={{ background: bgColor }}
     >
       <svg width={size} height={size} className="-rotate-90">
