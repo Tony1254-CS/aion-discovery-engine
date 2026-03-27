@@ -49,8 +49,8 @@ type UpdateCb = (data: {
 }) => void;
 
 let lastCallTime = 0;
-const MIN_CALL_INTERVAL = 6000;
-const RATE_LIMIT_RETRY_DELAYS = [15000, 30000, 45000];
+const MIN_CALL_INTERVAL = 1200;
+const RATE_LIMIT_RETRY_DELAYS = [3000, 6000, 9000];
 
 const isRateLimitError = (message: string) =>
   message.includes("429") || message.toLowerCase().includes("rate limit");
@@ -315,22 +315,24 @@ export async function runResearchPipeline(
     });
     if (signal.aborted) return;
 
-    // Validate paper completeness - check all required sections exist and have content
+    // Validate paper completeness without triggering another expensive AI call
     const requiredSections = ["title", "abstract", "introduction", "literatureReview", "methods", "results", "discussion", "conclusion", "references"];
     const missingSections = requiredSections.filter(s => !paperResult[s] || (typeof paperResult[s] === "string" && paperResult[s].length < 50));
-    
+
     if (missingSections.length > 0) {
-      addLog(`Paper incomplete (missing: ${missingSections.join(", ")}). Retrying…`, "warning");
+      addLog(`Paper draft is partial (missing: ${missingSections.join(", ")}). Continuing with the fastest available draft.`, "warning");
+      paperResult = {
+        title: paperResult.title || `Research draft: ${query}`,
+        abstract: paperResult.abstract || "Abstract unavailable in the first pass.",
+        introduction: paperResult.introduction || "Introduction unavailable in the first pass.",
+        literatureReview: paperResult.literatureReview || researchContext.literature?.synthesis || "Literature review unavailable in the first pass.",
+        methods: paperResult.methods || researchContext.experiment?.methodology || "Methods unavailable in the first pass.",
+        results: paperResult.results || researchContext.experiment?.results?.keyFinding || "Results unavailable in the first pass.",
+        discussion: paperResult.discussion || "Discussion unavailable in the first pass.",
+        conclusion: paperResult.conclusion || "Conclusion unavailable in the first pass.",
+        references: paperResult.references || [],
+      };
       emit();
-      // Retry once
-      const retryResult = await callAgent("paper", query, {
-        ...researchContext,
-        competingHypotheses: competingHyps,
-        noveltyScore,
-        warnings,
-      });
-      if (signal.aborted) return;
-      if (retryResult.title) paperResult = retryResult;
     }
 
     // Log paper stats
