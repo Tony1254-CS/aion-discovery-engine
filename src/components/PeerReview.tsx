@@ -35,6 +35,7 @@ export default function PeerReview({ paper, query, onPaperUpdate, onReviewComple
       });
       if (error) throw error;
       setReview(data?.result);
+      onReviewComplete?.(data?.result);
     } catch (e: any) {
       console.error("Peer review error:", e);
     } finally {
