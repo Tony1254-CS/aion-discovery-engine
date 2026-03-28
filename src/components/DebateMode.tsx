@@ -26,7 +26,12 @@ export default function DebateMode({ hypothesis, query, onClose }: Props) {
   const [summary, setSummary] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const pausedRef = useRef(false);
   const maxRounds = 4;
+
+  useEffect(() => {
+    pausedRef.current = isPaused;
+  }, [isPaused]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -58,6 +63,7 @@ export default function DebateMode({ hypothesis, query, onClose }: Props) {
     });
 
     if (error) throw error;
+    if (data?.rateLimited) throw new Error("The debate AI is temporarily unavailable. Please try again.");
     return typeof data?.result === "string" ? data.result : data?.result?.raw || data?.result?.response || JSON.stringify(data?.result);
   };
 
@@ -90,7 +96,7 @@ export default function DebateMode({ hypothesis, query, onClose }: Props) {
         setMessages([...allMessages]);
 
         // Wait if paused
-        while (isPaused && !abortRef.current?.signal.aborted) {
+        while (pausedRef.current && !abortRef.current?.signal.aborted) {
           await new Promise((r) => setTimeout(r, 500));
         }
 
