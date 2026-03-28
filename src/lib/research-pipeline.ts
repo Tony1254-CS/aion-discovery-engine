@@ -72,6 +72,9 @@ async function callAgent(stage: string, query: string, context?: any) {
 
     const errorMessage = error?.message || data?.error;
     if (!errorMessage) {
+      if (data?.rateLimited) {
+        throw new Error("AI generation is temporarily unavailable. Please retry in a moment.");
+      }
       return data.result;
     }
 
@@ -100,9 +103,19 @@ function buildReferenceList(papers: any[]) {
     .slice(0, 20)
     .map((paper: any) => {
       const authors = typeof paper?.authors === "string" ? paper.authors : "Unknown author";
-      const year = typeof paper?.date === "string" ? paper.date.slice(0, 4) : "n.d.";
+      const year = typeof paper?.year === "number"
+        ? String(paper.year)
+        : typeof paper?.year === "string"
+          ? paper.year
+          : typeof paper?.date === "string"
+            ? paper.date.slice(0, 4)
+            : "n.d.";
       const title = typeof paper?.title === "string" ? paper.title : "Untitled";
-      const journal = typeof paper?.source === "string" ? paper.source : "Unknown source";
+      const journal = typeof paper?.journal === "string"
+        ? paper.journal
+        : typeof paper?.source === "string"
+          ? paper.source
+          : "Unknown source";
       const url = typeof paper?.url === "string" ? paper.url : "";
 
       return {
@@ -453,6 +466,18 @@ export async function runResearchPipeline(
     }
 
     if (!Array.isArray(paperResult.references) || paperResult.references.length === 0) {
+      paperResult.references = buildReferenceList(researchContext.literature?.papers || []);
+    }
+
+    paperResult.references = paperResult.references
+      .map((reference: any) => {
+        if (typeof reference === "string") return { text: reference };
+        if (reference && typeof reference.text === "string") return { text: reference.text };
+        return null;
+      })
+      .filter(Boolean);
+
+    if (paperResult.references.length === 0) {
       paperResult.references = buildReferenceList(researchContext.literature?.papers || []);
     }
 
