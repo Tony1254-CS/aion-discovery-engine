@@ -37,13 +37,16 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
       });
 
       if (error) throw error;
+      if (data?.rateLimited) {
+        throw new Error("The AI is temporarily unavailable. Please try again in a moment.");
+      }
 
       const result = data?.result;
       if (result && result.title) {
         onPaperUpdate(result);
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "I've updated the paper based on your request. The changes are now reflected above." },
+          { role: "assistant", content: "I've updated the paper based on your request and refreshed the draft above." },
         ]);
       } else if (result?.raw) {
         setMessages((prev) => [...prev, { role: "assistant", content: result.raw }]);
