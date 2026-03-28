@@ -32,14 +32,89 @@ const JSON_STAGES = new Set<Stage>([
   "literature", "gaps", "hypotheses", "experiment", "paper", "refine",
   "peer-review", "competing-hypotheses", "research-gaps", "research-proposal",
 ]);
+const LONGFORM_PRIORITY_STAGES = new Set<Stage>(["paper", "refine", "debate"]);
+
+type Provider = "lovable" | "google" | "groq" | "huggingface";
 
 const parseJsonContent = (content: string) => {
+  const candidates = [
+    content,
+    content.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1]?.trim(),
+    (() => {
+      const firstBrace = content.indexOf("{");
+      const lastBrace = content.lastIndexOf("}");
+      return firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace
+        ? content.slice(firstBrace, lastBrace + 1)
+        : undefined;
+    })(),
+  ].filter(Boolean) as string[];
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate.trim());
+    } catch {
+      continue;
+    }
+  }
+
   try {
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
     return JSON.parse(jsonMatch ? jsonMatch[1].trim() : content.trim());
   } catch {
     return { raw: content };
   }
+};
+
+const normalizeReferences = (references: unknown, fallbackReferences: { text: string }[]) => {
+  if (!Array.isArray(references)) return fallbackReferences;
+
+  const normalized = references
+    .map((reference) => {
+      if (typeof reference === "string") return { text: reference.trim() };
+      if (reference && typeof reference === "object" && typeof (reference as { text?: unknown }).text === "string") {
+        return { text: (reference as { text: string }).text.trim() };
+      }
+      return null;
+    })
+    .filter((reference): reference is { text: string } => Boolean(reference?.text));
+
+  return normalized.length > 0 ? normalized : fallbackReferences;
+};
+
+const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult: string) => {
+  const fallback = buildFallbackResult(stage, query, context);
+
+  if (!JSON_STAGES.has(stage)) {
+    return { raw: aiResult.trim() || (fallback as any).raw || "Response unavailable." };
+  }
+
+  const parsed = parseJsonContent(aiResult);
+  if (parsed && typeof parsed === "object" && !("raw" in parsed)) {
+    if (stage === "paper" || stage === "refine") {
+      const fallbackPaper = buildFallbackPaper(query, context);
+      return {
+        ...fallbackPaper,
+        ...parsed,
+        references: normalizeReferences((parsed as any).references, fallbackPaper.references),
+      };
+    }
+
+    return parsed;
+  }
+
+  if (stage === "paper") {
+    return buildFallbackPaper(query, context);
+  }
+
+  return fallback;
+};
+
+const getProviderOrder = (stage: Stage): Provider[] => {
+  if (LONGFORM_PRIORITY_STAGES.has(stage)) {
+    return ["lovable", "google", "groq", "huggingface"];
+  }
+
+  return ["google", "lovable", "groq", "huggingface"];
 };
 
 const buildFallbackPaper = (query: string, context: any) => {
@@ -215,6 +290,10 @@ async function callGoogleAI(apiKey: string, model: string, messages: any[], maxT
     }
 
     const data = await response.json();
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason) {
+      console.log(`Google AI finish reason: ${finishReason}`);
+    }
     return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
   } catch (err) {
     console.log("Google AI error:", err);
@@ -277,7 +356,8 @@ async function callLovableAI(apiKey: string, messages: any[], maxTokens: number)
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: Math.max(maxTokens, 4000),
+        max_tokens: Math.max(maxTokens, 6000),
+        ...(maxTokens >= 8000 ? { reasoning: { effort: "medium" } } : {}),
       }),
     });
 
@@ -330,31 +410,28 @@ serve(async (req) => {
     let aiResult: string | null = null;
     let usedModel = model;
 
-    // 1st: Hugging Face / DeepSeek-V3 (FREE, good quality, reliable)
-    if (HUGGINGFACE_API_KEY) {
-      aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
-      if (aiResult) usedModel = "hf/deepseek-v3";
-    }
+    for (const provider of getProviderOrder(stage)) {
+      if (aiResult) break;
 
-    // 2nd: Google AI Studio (FREE, but quota may be exhausted)
-    if (!aiResult && GOOGLE_AI_API_KEY) {
-      console.log("HuggingFace unavailable, trying Google AI...");
-      aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
-      if (aiResult) usedModel = `google/${model}`;
-    }
+      if (provider === "lovable" && LOVABLE_API_KEY) {
+        aiResult = await callLovableAI(LOVABLE_API_KEY, messages, maxTokens);
+        if (aiResult) usedModel = maxTokens >= 8000 ? LOVABLE_LONGFORM : LOVABLE_FAST;
+      }
 
-    // 3rd: Groq (FREE, fast but very limited TPM)
-    if (!aiResult && GROQ_API_KEY) {
-      console.log("Google AI unavailable, trying Groq...");
-      aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
-      if (aiResult) usedModel = "groq/llama";
-    }
+      if (provider === "google" && !aiResult && GOOGLE_AI_API_KEY) {
+        aiResult = await callGoogleAI(GOOGLE_AI_API_KEY, model, messages, maxTokens);
+        if (aiResult) usedModel = `google/${model}`;
+      }
 
-    // 4th: Lovable AI gateway fallback for reliability
-    if (!aiResult && LOVABLE_API_KEY) {
-      console.log("External providers unavailable, trying Lovable AI...");
-      aiResult = await callLovableAI(LOVABLE_API_KEY, messages, maxTokens);
-      if (aiResult) usedModel = maxTokens >= 8000 ? LOVABLE_LONGFORM : LOVABLE_FAST;
+      if (provider === "groq" && !aiResult && GROQ_API_KEY) {
+        aiResult = await callGroq(GROQ_API_KEY, model, messages, maxTokens);
+        if (aiResult) usedModel = "groq/llama";
+      }
+
+      if (provider === "huggingface" && !aiResult && HUGGINGFACE_API_KEY) {
+        aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
+        if (aiResult) usedModel = "hf/deepseek-v3";
+      }
     }
 
     // Both failed → structured fallback
@@ -365,10 +442,7 @@ serve(async (req) => {
       );
     }
 
-    const parsed = JSON_STAGES.has(stage) ? parseJsonContent(aiResult) : { raw: aiResult };
-    const result = parsed && typeof parsed === "object" && !("raw" in parsed && JSON_STAGES.has(stage))
-      ? parsed
-      : buildFallbackResult(stage, query, context);
+    const result = finalizeStageResult(stage, query, context, aiResult);
 
     if (stage === "paper" && (!Array.isArray((result as any).references) || (result as any).references.length === 0)) {
       (result as any).references = buildFallbackPaper(query, context).references;
