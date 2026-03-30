@@ -420,6 +420,14 @@ export default function PaperView() {
             </motion.div>
           )}
 
+          {/* References Inspector */}
+          <motion.div custom={refIdx} initial="hidden" animate="visible" variants={sectionVariants}>
+            <ReferencesInspector
+              fetchedPapers={state?.literature?.papers || []}
+              paperReferences={references}
+            />
+          </motion.div>
+
           {/* References */}
           {references.length > 0 && (
             <motion.div custom={refIdx} initial="hidden" animate="visible" variants={sectionVariants}>
