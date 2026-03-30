@@ -486,10 +486,11 @@ serve(async (req) => {
       }
     }
 
-    // Both failed → structured fallback
+    // All providers failed → structured fallback with explicit status message
     if (!aiResult) {
+      const providerError = "All AI providers are currently unavailable (quota/rate-limit/credits). A local fallback response was returned.";
       return new Response(
-        JSON.stringify({ stage, model: usedModel, rateLimited: true, result: buildFallbackResult(stage, query, context) }),
+        JSON.stringify({ stage, model: usedModel, rateLimited: true, error: providerError, result: buildFallbackResult(stage, query, context) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

@@ -108,22 +108,14 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
       });
 
       if (error) throw error;
-      const providerError = typeof data?.error === "string" ? data.error : "";
-      if (data?.rateLimited && providerError) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: `⚠️ ${providerError}\n\nI can still apply a local paper refinement if available. Please retry your request in a minute for full AI output.`,
-          },
-        ]);
-      }
 
       const result = data?.result;
       if (result && typeof result === "object" && result.title) {
         const changedSections = detectChangedSections(paper, result);
         const previousRefCount = Array.isArray(paper?.references) ? paper.references.length : 0;
         const nextRefCount = Array.isArray(result?.references) ? result.references.length : 0;
+        const providerError = typeof data?.error === "string" ? data.error : undefined;
+        const wasFallback = Boolean(data?.rateLimited) || (typeof result?.updateNotes === "string" && result.updateNotes.toLowerCase().includes("fallback"));
 
         onPaperUpdate(result);
 
@@ -133,9 +125,14 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
           nextRefCount,
           typeof result?.updateNotes === "string" ? result.updateNotes : undefined,
           typeof data?.model === "string" ? data.model : undefined,
+          wasFallback,
         );
 
-        setMessages((prev) => [...prev, { role: "assistant", content: assistantReply }]);
+        const finalReply = providerError && wasFallback
+          ? `${assistantReply}\n\n⚠️ Provider status: ${providerError}`
+          : assistantReply;
+
+        setMessages((prev) => [...prev, { role: "assistant", content: finalReply }]);
       } else if (result?.raw && typeof result.raw === "string") {
         setMessages((prev) => [...prev, { role: "assistant", content: result.raw }]);
       } else {
