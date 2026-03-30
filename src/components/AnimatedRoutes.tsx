@@ -5,6 +5,7 @@ import Dashboard from "@/pages/Dashboard";
 import PaperView from "@/pages/PaperView";
 import Leaderboard from "@/pages/Leaderboard";
 import IdeaReviewResults from "@/pages/IdeaReviewResults";
+import About from "@/pages/About";
 import NotFound from "@/pages/NotFound";
 
 const pageVariants = {
@@ -32,7 +33,7 @@ export default function AnimatedRoutes() {
           <Route path="/idea-review" element={<IdeaReviewResults />} />
           <Route path="/paper" element={<PaperView />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>
