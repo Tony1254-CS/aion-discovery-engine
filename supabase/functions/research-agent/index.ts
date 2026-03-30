@@ -373,13 +373,16 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
   }
 }
 
-// Call Hugging Face as 3rd backup — FREE
+// Call Hugging Face Inference API — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
+  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : (maxTokens >= 3000 ? HF_MODEL_BALANCED : HF_MODEL_FAST);
+  const url = `${HF_API_URL}${model}/v1/chat/completions`;
+
   try {
-    const response = await fetch(HF_API_URL, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: HF_MODEL, messages, max_tokens: Math.min(maxTokens, 4000), temperature: 0.3 }),
+      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3, stream: false }),
     });
     if (!response.ok) {
       const t = await response.text();
