@@ -438,36 +438,44 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
   }
 }
 
-// Call Hugging Face Router — PRIMARY
+// Call Hugging Face Router — PRIMARY (tries 70B first, falls back to 8B)
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
   const isLongform = maxTokens >= 6000;
-  const model = isLongform ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
+  const primaryModel = isLongform ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
+  const fallbackModel = HF_MODEL_FAST; // always available on free tier
   const effectiveMaxTokens = isLongform ? Math.min(maxTokens, 8192) : Math.min(maxTokens, 4096);
-  const timeoutMs = isLongform ? 90000 : 45000; // 90s for longform, 45s for fast
-  console.log(`HuggingFace calling model: ${model}, maxTokens: ${effectiveMaxTokens}, timeout: ${timeoutMs}ms`);
+  const timeoutMs = isLongform ? 90000 : 45000;
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    const response = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, max_tokens: effectiveMaxTokens, temperature: 0.3 }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!response.ok) {
-      const t = await response.text();
-      console.error(`HuggingFace failed (${response.status}): ${t.slice(0, 200)}`);
+  const modelsToTry = primaryModel !== fallbackModel ? [primaryModel, fallbackModel] : [primaryModel];
+
+  for (const model of modelsToTry) {
+    console.log(`HuggingFace calling model: ${model}, maxTokens: ${effectiveMaxTokens}, timeout: ${timeoutMs}ms`);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(HF_API_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, messages, max_tokens: effectiveMaxTokens, temperature: 0.3 }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!response.ok) {
+        const t = await response.text();
+        console.error(`HuggingFace ${model} failed (${response.status}): ${t.slice(0, 200)}`);
+        if (model !== fallbackModel) continue; // try fallback
+        return null;
+      }
+      const data = await response.json();
+      console.log(`HuggingFace success with model: ${model}`);
+      return data.choices?.[0]?.message?.content || null;
+    } catch (err) {
+      console.error(`HuggingFace ${model} error:`, err);
+      if (model !== fallbackModel) continue; // try fallback
       return null;
     }
-    const data = await response.json();
-    console.log(`HuggingFace success with model: ${model}`);
-    return data.choices?.[0]?.message?.content || null;
-  } catch (err) {
-    console.error("HuggingFace error:", err);
-    return null;
   }
+  return null;
 }
 
 async function callLovableAI(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
