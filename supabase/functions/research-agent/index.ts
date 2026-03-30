@@ -336,20 +336,16 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
     },
     paper: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
-      systemPrompt: `Write a publication-quality research paper. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references.
+      systemPrompt: `You are a research paper generator. You MUST respond with ONLY valid JSON — no markdown, no explanation, no text outside the JSON object.
 
-IMPORTANT LENGTH REQUIREMENTS:
-- abstract: 250-300 words
-- introduction: 800+ words with clear problem statement, significance, and research objectives
-- literatureReview: 1000+ words covering key studies, theoretical frameworks, and gaps
-- methods: 800+ words with detailed methodology, study design, data collection, variables, sampling, and analysis techniques
-- results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
-- discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
-- conclusion: 300+ words
-- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal, Volume(Issue), Pages." NEVER include DOIs — AI-generated DOIs are almost always fake and broken. Only cite real, verifiable papers.
+Return a single JSON object with these exact keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.
+All values are strings EXCEPT references which is an array of {text: string}.
 
-Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
-      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
+LENGTH REQUIREMENTS: abstract 250+ words, introduction 800+ words, literatureReview 1000+ words, methods 800+ words, results 800+ words, discussion 1000+ words, conclusion 300+ words.
+References: 15-20 real papers formatted as "Author(s) (Year). Title. Journal." NO DOIs.
+
+CRITICAL: Your entire response must be a valid JSON object starting with { and ending with }. No markdown headers, no code fences.`,
+      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\n\nRespond with ONLY a JSON object. No markdown. No explanation. Start your response with { and end with }.`,
     },
     refine: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
