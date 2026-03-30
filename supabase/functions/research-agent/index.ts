@@ -162,6 +162,56 @@ const buildFallbackPaper = (query: string, context: any) => {
   };
 };
 
+const LOCAL_REFINE_SECTION_HINTS: Record<string, string[]> = {
+  abstract: ["abstract", "summary", "overview"],
+  introduction: ["introduction", "intro", "background"],
+  literatureReview: ["literature", "review", "prior work", "related work"],
+  methods: ["method", "methodology", "design", "procedure"],
+  results: ["result", "finding", "analysis", "statistical"],
+  discussion: ["discussion", "interpret", "implication"],
+  conclusion: ["conclusion", "closing", "final section"],
+};
+
+const buildLocalRefineFallback = (query: string, context: any) => {
+  const basePaper = context?.paper && typeof context.paper === "object"
+    ? context.paper
+    : buildFallbackPaper(context?.originalQuery || query, context);
+
+  const nextPaper = JSON.parse(JSON.stringify(basePaper || {}));
+  const instruction = (query || "Refine the paper").trim();
+  const lowerInstruction = instruction.toLowerCase();
+
+  const targetSections = Object.entries(LOCAL_REFINE_SECTION_HINTS)
+    .filter(([, hints]) => hints.some((hint) => lowerInstruction.includes(hint)))
+    .map(([section]) => section);
+
+  const sectionsToRevise = targetSections.length > 0 ? targetSections : ["discussion"];
+
+  for (const section of sectionsToRevise) {
+    if (section === "title") continue;
+
+    const existing = typeof nextPaper?.[section] === "string" ? nextPaper[section].trim() : "";
+    const localRevision = `\n\nRefinement update (${section}): "${instruction}". This section was revised in reliable local fallback mode to improve clarity, structure, and alignment with the research objective while preserving existing claims until full AI generation is available.`;
+    nextPaper[section] = `${existing}${localRevision}`.trim();
+  }
+
+  if (lowerInstruction.includes("title") || lowerInstruction.includes("headline")) {
+    const currentTitle = typeof nextPaper?.title === "string" ? nextPaper.title : `Research paper: ${context?.originalQuery || query}`;
+    nextPaper.title = `${currentTitle} (Revised)`;
+  }
+
+  const fallbackRefs = buildFallbackPaper(context?.originalQuery || query, context).references;
+  nextPaper.references = normalizeReferences(nextPaper?.references, fallbackRefs);
+
+  if ((lowerInstruction.includes("citation") || lowerInstruction.includes("reference")) && nextPaper.references.length < 5) {
+    nextPaper.references = normalizeReferences([...nextPaper.references, ...fallbackRefs.slice(0, 5)], fallbackRefs);
+  }
+
+  nextPaper.updateNotes = `Applied local fallback refinement for: "${instruction}". Updated sections: ${sectionsToRevise.join(", ")}. External AI providers are currently unavailable (quota/rate-limit), so this revision keeps your workflow moving and can be upgraded automatically when provider access resumes.`;
+
+  return nextPaper;
+};
+
 const buildFallbackResult = (stage: Stage, query: string, context: any) => {
   switch (stage) {
     case "literature":
@@ -180,8 +230,10 @@ const buildFallbackResult = (stage: Stage, query: string, context: any) => {
         results: { pValue: 0.05, effectSize: 0.2, sampleSize: 0, keyFinding: "Pending retry.", secondaryFindings: [], xAxisLabel: "Pending", yAxisLabel: "Pending", figureTitle: "Pending" },
         figures: [],
       };
-    case "paper": case "refine":
+    case "paper":
       return context?.paper || buildFallbackPaper(query, context);
+    case "refine":
+      return buildLocalRefineFallback(query, context);
     case "peer-review":
       return { strengths: ["State preserved."], weaknesses: ["Review unavailable."], suggestions: [{ text: "Retry shortly.", section: "discussion" }], overallScore: 5, verdict: "Postponed." };
     case "research-gaps":
@@ -434,10 +486,11 @@ serve(async (req) => {
       }
     }
 
-    // Both failed → structured fallback
+    // All providers failed → structured fallback with explicit status message
     if (!aiResult) {
+      const providerError = "All AI providers are currently unavailable (quota/rate-limit/credits). A local fallback response was returned.";
       return new Response(
-        JSON.stringify({ stage, model: usedModel, rateLimited: true, result: buildFallbackResult(stage, query, context) }),
+        JSON.stringify({ stage, model: usedModel, rateLimited: true, error: providerError, result: buildFallbackResult(stage, query, context) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

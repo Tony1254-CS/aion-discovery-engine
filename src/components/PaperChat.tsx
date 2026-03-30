@@ -37,6 +37,7 @@ const buildAssistantMessage = (
   nextRefCount: number,
   updateNotes?: string,
   model?: string,
+  wasFallback?: boolean,
 ) => {
   if (updateNotes && updateNotes.trim().length > 0) {
     return updateNotes;
@@ -45,7 +46,9 @@ const buildAssistantMessage = (
   const refDelta = nextRefCount - previousRefCount;
 
   if (changedSections.length === 0 && refDelta === 0) {
-    return "I reviewed your request, but I could not make a reliable revision to the draft this round. Please try a more specific instruction (for example: *rewrite the discussion to compare findings against 3 cited studies*).";
+    return wasFallback
+      ? "AI providers are currently rate-limited, so I applied a local fallback refinement to keep your workflow moving. Please retry in a few minutes for a full AI rewrite."
+      : "I reviewed your request, but I could not make a reliable revision to the draft this round. Please try a more specific instruction (for example: *rewrite the discussion to compare findings against 3 cited studies*).";
   }
 
   const changedLabels = changedSections.map((key) => sectionKeyToLabel[key] || key);
@@ -58,12 +61,14 @@ const buildAssistantMessage = (
     : "- **References:** unchanged";
 
   const modelLine = model ? `- **Engine:** ${model}` : null;
+  const modeLine = wasFallback ? "- **Mode:** local fallback (providers currently unavailable)" : null;
 
   return [
-    "I updated the paper based on your request.",
+    wasFallback ? "I applied a local fallback update to your paper." : "I updated the paper based on your request.",
     "",
     sectionLine,
     referenceLine,
+    modeLine,
     modelLine,
   ].filter(Boolean).join("\n");
 };
@@ -103,15 +108,14 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
       });
 
       if (error) throw error;
-      if (data?.rateLimited) {
-        throw new Error("The AI is temporarily unavailable. Please try again in a moment.");
-      }
 
       const result = data?.result;
       if (result && typeof result === "object" && result.title) {
         const changedSections = detectChangedSections(paper, result);
         const previousRefCount = Array.isArray(paper?.references) ? paper.references.length : 0;
         const nextRefCount = Array.isArray(result?.references) ? result.references.length : 0;
+        const providerError = typeof data?.error === "string" ? data.error : undefined;
+        const wasFallback = Boolean(data?.rateLimited) || (typeof result?.updateNotes === "string" && result.updateNotes.toLowerCase().includes("fallback"));
 
         onPaperUpdate(result);
 
@@ -121,9 +125,14 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
           nextRefCount,
           typeof result?.updateNotes === "string" ? result.updateNotes : undefined,
           typeof data?.model === "string" ? data.model : undefined,
+          wasFallback,
         );
 
-        setMessages((prev) => [...prev, { role: "assistant", content: assistantReply }]);
+        const finalReply = providerError && wasFallback
+          ? `${assistantReply}\n\n⚠️ Provider status: ${providerError}`
+          : assistantReply;
+
+        setMessages((prev) => [...prev, { role: "assistant", content: finalReply }]);
       } else if (result?.raw && typeof result.raw === "string") {
         setMessages((prev) => [...prev, { role: "assistant", content: result.raw }]);
       } else {
