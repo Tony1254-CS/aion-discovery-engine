@@ -12,6 +12,7 @@ import HypothesisSimulation from "@/components/HypothesisSimulation";
 import DebateMode from "@/components/DebateMode";
 import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
 import LiteratureMonitor from "@/components/LiteratureMonitor";
+import ReferencesInspector from "@/components/ReferencesInspector";
 import { supabase } from "@/integrations/supabase/client";
 
 const sectionVariants = {
