@@ -37,6 +37,7 @@ const buildAssistantMessage = (
   nextRefCount: number,
   updateNotes?: string,
   model?: string,
+  wasFallback?: boolean,
 ) => {
   if (updateNotes && updateNotes.trim().length > 0) {
     return updateNotes;
@@ -45,7 +46,9 @@ const buildAssistantMessage = (
   const refDelta = nextRefCount - previousRefCount;
 
   if (changedSections.length === 0 && refDelta === 0) {
-    return "I reviewed your request, but I could not make a reliable revision to the draft this round. Please try a more specific instruction (for example: *rewrite the discussion to compare findings against 3 cited studies*).";
+    return wasFallback
+      ? "AI providers are currently rate-limited, so I applied a local fallback refinement to keep your workflow moving. Please retry in a few minutes for a full AI rewrite."
+      : "I reviewed your request, but I could not make a reliable revision to the draft this round. Please try a more specific instruction (for example: *rewrite the discussion to compare findings against 3 cited studies*).";
   }
 
   const changedLabels = changedSections.map((key) => sectionKeyToLabel[key] || key);
@@ -58,12 +61,14 @@ const buildAssistantMessage = (
     : "- **References:** unchanged";
 
   const modelLine = model ? `- **Engine:** ${model}` : null;
+  const modeLine = wasFallback ? "- **Mode:** local fallback (providers currently unavailable)" : null;
 
   return [
-    "I updated the paper based on your request.",
+    wasFallback ? "I applied a local fallback update to your paper." : "I updated the paper based on your request.",
     "",
     sectionLine,
     referenceLine,
+    modeLine,
     modelLine,
   ].filter(Boolean).join("\n");
 };
