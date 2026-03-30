@@ -66,6 +66,60 @@ const parseJsonContent = (content: string) => {
   }
 };
 
+// Parse markdown-formatted paper output into structured paper object
+const parseMarkdownPaper = (content: string): Record<string, any> | null => {
+  const sectionMap: Record<string, string> = {
+    "title": "title", "abstract": "abstract", "introduction": "introduction",
+    "literature review": "literatureReview", "literature": "literatureReview",
+    "related work": "literatureReview", "methods": "methods", "methodology": "methods",
+    "method": "methods", "results": "results", "findings": "results",
+    "discussion": "discussion", "conclusion": "conclusion", "conclusions": "conclusion",
+    "references": "_references",
+  };
+
+  // Check if content looks like markdown with headers
+  if (!content.includes("**") && !content.includes("##") && !content.includes("# ")) return null;
+
+  const paper: Record<string, any> = {};
+  // Split by markdown headers (## Header, **Header**, # Header)
+  const headerRegex = /(?:^|\n)(?:#{1,3}\s+\*{0,2}|(?:\*{2}))([^*\n]+?)(?:\*{2})?:?\s*\n/gi;
+  const parts: { key: string; start: number }[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = headerRegex.exec(content)) !== null) {
+    const rawKey = match[1].trim().toLowerCase().replace(/[^a-z\s]/g, "").trim();
+    const mappedKey = sectionMap[rawKey];
+    if (mappedKey) {
+      parts.push({ key: mappedKey, start: match.index + match[0].length });
+    }
+  }
+
+  if (parts.length < 3) return null; // Need at least 3 sections to be a valid paper
+
+  for (let i = 0; i < parts.length; i++) {
+    const end = i + 1 < parts.length ? parts[i + 1].start - (content.lastIndexOf("\n", parts[i + 1].start) > parts[i].start ? content.length - content.lastIndexOf("\n", parts[i + 1].start) : 0) : content.length;
+    const sectionContent = content.slice(parts[i].start, i + 1 < parts.length ? content.indexOf("\n#", parts[i].start) !== -1 && content.indexOf("\n#", parts[i].start) < (i + 1 < parts.length ? parts[i + 1].start : content.length) ? content.indexOf("\n#", parts[i].start) : (i + 1 < parts.length ? parts[i + 1].start : content.length) : content.length).trim();
+
+    if (parts[i].key === "_references") {
+      // Parse references as array
+      const refs = sectionContent.split(/\n(?=\d+\.|[-•*])/).map(r => r.replace(/^\d+\.\s*|^[-•*]\s*/g, "").trim()).filter(r => r.length > 10);
+      paper.references = refs.map(r => ({ text: r }));
+    } else if (parts[i].key === "title") {
+      paper.title = sectionContent.split("\n")[0].trim();
+    } else {
+      paper[parts[i].key] = sectionContent;
+    }
+  }
+
+  // Try to extract title from first line if not found
+  if (!paper.title) {
+    const firstLine = content.trim().split("\n")[0].replace(/^[#*\s]+/, "").replace(/[*#]+$/, "").trim();
+    if (firstLine.length > 10 && firstLine.length < 200) paper.title = firstLine;
+  }
+
+  return Object.keys(paper).length >= 3 ? paper : null;
+};
+
 const normalizeReferences = (references: unknown, fallbackReferences: { text: string }[]) => {
   if (!Array.isArray(references)) return fallbackReferences;
 
