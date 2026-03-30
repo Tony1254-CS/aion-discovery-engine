@@ -12,6 +12,7 @@ import HypothesisSimulation from "@/components/HypothesisSimulation";
 import DebateMode from "@/components/DebateMode";
 import MetaAnalysisBuilder from "@/components/MetaAnalysisBuilder";
 import LiteratureMonitor from "@/components/LiteratureMonitor";
+import ReferencesInspector from "@/components/ReferencesInspector";
 import { supabase } from "@/integrations/supabase/client";
 
 const sectionVariants = {
@@ -418,6 +419,14 @@ export default function PaperView() {
               </div>
             </motion.div>
           )}
+
+          {/* References Inspector */}
+          <motion.div custom={refIdx} initial="hidden" animate="visible" variants={sectionVariants}>
+            <ReferencesInspector
+              fetchedPapers={state?.literature?.papers || []}
+              paperReferences={references}
+            />
+          </motion.div>
 
           {/* References */}
           {references.length > 0 && (
