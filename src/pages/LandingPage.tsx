@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing, Lightbulb } from "lucide-react";
+import { Sparkles, Upload, ArrowRight, Beaker, BookOpen, Brain, Zap, ArrowUpRight, Microscope, FlaskConical, Trophy, X, FileSpreadsheet, AlertCircle, BellRing, Lightbulb, Info } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import AionShowcase from "@/components/landing/AionShowcase";
 import LiteratureMonitor from "@/components/LiteratureMonitor";
