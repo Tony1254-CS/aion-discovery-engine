@@ -66,6 +66,60 @@ const parseJsonContent = (content: string) => {
   }
 };
 
+// Parse markdown-formatted paper output into structured paper object
+const parseMarkdownPaper = (content: string): Record<string, any> | null => {
+  const sectionMap: Record<string, string> = {
+    "title": "title", "abstract": "abstract", "introduction": "introduction",
+    "literature review": "literatureReview", "literature": "literatureReview",
+    "related work": "literatureReview", "methods": "methods", "methodology": "methods",
+    "method": "methods", "results": "results", "findings": "results",
+    "discussion": "discussion", "conclusion": "conclusion", "conclusions": "conclusion",
+    "references": "_references",
+  };
+
+  // Check if content looks like markdown with headers
+  if (!content.includes("**") && !content.includes("##") && !content.includes("# ")) return null;
+
+  const paper: Record<string, any> = {};
+  // Split by markdown headers (## Header, **Header**, # Header)
+  const headerRegex = /(?:^|\n)(?:#{1,3}\s+\*{0,2}|(?:\*{2}))([^*\n]+?)(?:\*{2})?:?\s*\n/gi;
+  const parts: { key: string; start: number }[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = headerRegex.exec(content)) !== null) {
+    const rawKey = match[1].trim().toLowerCase().replace(/[^a-z\s]/g, "").trim();
+    const mappedKey = sectionMap[rawKey];
+    if (mappedKey) {
+      parts.push({ key: mappedKey, start: match.index + match[0].length });
+    }
+  }
+
+  if (parts.length < 3) return null; // Need at least 3 sections to be a valid paper
+
+  for (let i = 0; i < parts.length; i++) {
+    const end = i + 1 < parts.length ? parts[i + 1].start - (content.lastIndexOf("\n", parts[i + 1].start) > parts[i].start ? content.length - content.lastIndexOf("\n", parts[i + 1].start) : 0) : content.length;
+    const sectionContent = content.slice(parts[i].start, i + 1 < parts.length ? content.indexOf("\n#", parts[i].start) !== -1 && content.indexOf("\n#", parts[i].start) < (i + 1 < parts.length ? parts[i + 1].start : content.length) ? content.indexOf("\n#", parts[i].start) : (i + 1 < parts.length ? parts[i + 1].start : content.length) : content.length).trim();
+
+    if (parts[i].key === "_references") {
+      // Parse references as array
+      const refs = sectionContent.split(/\n(?=\d+\.|[-•*])/).map(r => r.replace(/^\d+\.\s*|^[-•*]\s*/g, "").trim()).filter(r => r.length > 10);
+      paper.references = refs.map(r => ({ text: r }));
+    } else if (parts[i].key === "title") {
+      paper.title = sectionContent.split("\n")[0].trim();
+    } else {
+      paper[parts[i].key] = sectionContent;
+    }
+  }
+
+  // Try to extract title from first line if not found
+  if (!paper.title) {
+    const firstLine = content.trim().split("\n")[0].replace(/^[#*\s]+/, "").replace(/[*#]+$/, "").trim();
+    if (firstLine.length > 10 && firstLine.length < 200) paper.title = firstLine;
+  }
+
+  return Object.keys(paper).length >= 3 ? paper : null;
+};
+
 const normalizeReferences = (references: unknown, fallbackReferences: { text: string }[]) => {
   if (!Array.isArray(references)) return fallbackReferences;
 
@@ -90,6 +144,7 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   }
 
   const parsed = parseJsonContent(aiResult);
+
   if (parsed && typeof parsed === "object" && !("raw" in parsed)) {
     if (stage === "paper" || stage === "refine") {
       const fallbackPaper = buildFallbackPaper(query, context);
@@ -99,8 +154,23 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
         references: normalizeReferences((parsed as any).references, fallbackPaper.references),
       };
     }
-
     return parsed;
+  }
+
+  // JSON parsing failed — try markdown extraction for paper/refine stages
+  if ((stage === "paper" || stage === "refine") && parsed && "raw" in parsed) {
+    console.log(`[${stage}] JSON parse failed, attempting markdown extraction...`);
+    const mdPaper = parseMarkdownPaper(parsed.raw as string);
+    if (mdPaper) {
+      console.log(`[${stage}] Markdown extraction succeeded, keys: ${Object.keys(mdPaper).join(",")}`);
+      const fallbackPaper = buildFallbackPaper(query, context);
+      return {
+        ...fallbackPaper,
+        ...mdPaper,
+        references: normalizeReferences(mdPaper.references, fallbackPaper.references),
+      };
+    }
+    console.log(`[${stage}] Markdown extraction also failed`);
   }
 
   if (stage === "paper") {
@@ -266,20 +336,16 @@ const getStageConfig = (stage: Stage, query: string, context: any) => {
     },
     paper: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
-      systemPrompt: `Write a publication-quality research paper. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}). All values must be strings except references.
+      systemPrompt: `You are a research paper generator. You MUST respond with ONLY valid JSON — no markdown, no explanation, no text outside the JSON object.
 
-IMPORTANT LENGTH REQUIREMENTS:
-- abstract: 250-300 words
-- introduction: 800+ words with clear problem statement, significance, and research objectives
-- literatureReview: 1000+ words covering key studies, theoretical frameworks, and gaps
-- methods: 800+ words with detailed methodology, study design, data collection, variables, sampling, and analysis techniques
-- results: 800+ words with detailed findings, statistical analyses, tables/figures descriptions
-- discussion: 1000+ words interpreting results, comparing with literature, implications, limitations, and future directions
-- conclusion: 300+ words
-- references: Include 15-20 real academic references. Format each as "Author(s) (Year). Title. Journal, Volume(Issue), Pages." NEVER include DOIs — AI-generated DOIs are almost always fake and broken. Only cite real, verifiable papers.
+Return a single JSON object with these exact keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references.
+All values are strings EXCEPT references which is an array of {text: string}.
 
-Write as a serious academic paper, not a summary. Each section should be substantive and detailed.`,
-      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\nWrite a complete, detailed, publication-length structured paper with extensive methodology, results, and discussion sections. Include at least 15 references.`,
+LENGTH REQUIREMENTS: abstract 250+ words, introduction 800+ words, literatureReview 1000+ words, methods 800+ words, results 800+ words, discussion 1000+ words, conclusion 300+ words.
+References: 15-20 real papers formatted as "Author(s) (Year). Title. Journal." NO DOIs.
+
+CRITICAL: Your entire response must be a valid JSON object starting with { and ending with }. No markdown headers, no code fences.`,
+      userPrompt: `Research question: "${query}"\nContext: ${JSON.stringify(context)}\n\nRespond with ONLY a JSON object. No markdown. No explanation. Start your response with { and end with }.`,
     },
     refine: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
@@ -374,16 +440,19 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
 
 // Call Hugging Face Router — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
-  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
-  console.log(`HuggingFace calling model: ${model}, maxTokens: ${maxTokens}`);
+  const isLongform = maxTokens >= 6000;
+  const model = isLongform ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
+  const effectiveMaxTokens = isLongform ? Math.min(maxTokens, 8192) : Math.min(maxTokens, 4096);
+  const timeoutMs = isLongform ? 90000 : 45000; // 90s for longform, 45s for fast
+  console.log(`HuggingFace calling model: ${model}, maxTokens: ${effectiveMaxTokens}, timeout: ${timeoutMs}ms`);
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000); // 45s timeout
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 4096), temperature: 0.3 }),
+      body: JSON.stringify({ model, messages, max_tokens: effectiveMaxTokens, temperature: 0.3 }),
       signal: controller.signal,
     });
     clearTimeout(timeout);
