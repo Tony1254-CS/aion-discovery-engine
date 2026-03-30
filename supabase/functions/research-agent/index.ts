@@ -375,19 +375,25 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
 // Call Hugging Face Router — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
   const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
+  console.log(`HuggingFace calling model: ${model}, maxTokens: ${maxTokens}`);
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000); // 45s timeout
     const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3 }),
+      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 4096), temperature: 0.3 }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!response.ok) {
       const t = await response.text();
       console.error(`HuggingFace failed (${response.status}): ${t.slice(0, 200)}`);
       return null;
     }
     const data = await response.json();
+    console.log(`HuggingFace success with model: ${model}`);
     return data.choices?.[0]?.message?.content || null;
   } catch (err) {
     console.error("HuggingFace error:", err);
