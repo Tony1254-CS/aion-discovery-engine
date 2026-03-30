@@ -12,6 +12,62 @@ interface PaperChatProps {
   onPaperUpdate: (paper: any) => void;
 }
 
+const sectionKeyToLabel: Record<string, string> = {
+  title: "Title",
+  abstract: "Abstract",
+  introduction: "Introduction",
+  literatureReview: "Literature Review",
+  methods: "Methods",
+  results: "Results",
+  discussion: "Discussion",
+  conclusion: "Conclusion",
+};
+
+const trackedSections = Object.keys(sectionKeyToLabel);
+
+const normalize = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+
+const detectChangedSections = (previousPaper: any, nextPaper: any) => {
+  return trackedSections.filter((key) => normalize(previousPaper?.[key]) !== normalize(nextPaper?.[key]));
+};
+
+const buildAssistantMessage = (
+  changedSections: string[],
+  previousRefCount: number,
+  nextRefCount: number,
+  updateNotes?: string,
+  model?: string,
+) => {
+  if (updateNotes && updateNotes.trim().length > 0) {
+    return updateNotes;
+  }
+
+  const refDelta = nextRefCount - previousRefCount;
+
+  if (changedSections.length === 0 && refDelta === 0) {
+    return "I reviewed your request, but I could not make a reliable revision to the draft this round. Please try a more specific instruction (for example: *rewrite the discussion to compare findings against 3 cited studies*).";
+  }
+
+  const changedLabels = changedSections.map((key) => sectionKeyToLabel[key] || key);
+  const sectionLine = changedLabels.length > 0
+    ? `- **Updated sections:** ${changedLabels.slice(0, 5).join(", ")}${changedLabels.length > 5 ? "…" : ""}`
+    : "- **Updated sections:** targeted wording edits";
+
+  const referenceLine = refDelta !== 0
+    ? `- **References:** ${refDelta > 0 ? `added ${refDelta}` : `removed ${Math.abs(refDelta)}`}`
+    : "- **References:** unchanged";
+
+  const modelLine = model ? `- **Engine:** ${model}` : null;
+
+  return [
+    "I updated the paper based on your request.",
+    "",
+    sectionLine,
+    referenceLine,
+    modelLine,
+  ].filter(Boolean).join("\n");
+};
+
 export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -26,14 +82,24 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
+
     setInput("");
     const userMsg: Message = { role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("research-agent", {
-        body: { query: text, stage: "refine", context: { paper } },
+        body: {
+          query: text,
+          stage: "refine",
+          context: {
+            paper,
+            chatHistory: nextMessages.slice(-10),
+            originalQuery: query,
+          },
+        },
       });
 
       if (error) throw error;
@@ -42,18 +108,32 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
       }
 
       const result = data?.result;
-      if (result && result.title) {
+      if (result && typeof result === "object" && result.title) {
+        const changedSections = detectChangedSections(paper, result);
+        const previousRefCount = Array.isArray(paper?.references) ? paper.references.length : 0;
+        const nextRefCount = Array.isArray(result?.references) ? result.references.length : 0;
+
         onPaperUpdate(result);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "I've updated the paper based on your request and refreshed the draft above." },
-        ]);
-      } else if (result?.raw) {
+
+        const assistantReply = buildAssistantMessage(
+          changedSections,
+          previousRefCount,
+          nextRefCount,
+          typeof result?.updateNotes === "string" ? result.updateNotes : undefined,
+          typeof data?.model === "string" ? data.model : undefined,
+        );
+
+        setMessages((prev) => [...prev, { role: "assistant", content: assistantReply }]);
+      } else if (result?.raw && typeof result.raw === "string") {
         setMessages((prev) => [...prev, { role: "assistant", content: result.raw }]);
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "I've processed your request. Please check the paper for any updates." },
+          {
+            role: "assistant",
+            content:
+              "I received the request, but the revision payload was incomplete. Please try again with a specific section target.",
+          },
         ]);
       }
     } catch (e: any) {
@@ -68,7 +148,6 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
 
   return (
     <>
-      {/* FAB */}
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -83,7 +162,6 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
         )}
       </AnimatePresence>
 
-      {/* Chat panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -93,7 +171,6 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
             transition={{ duration: 0.25 }}
             className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl border border-border bg-background shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-primary" />
@@ -104,7 +181,6 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
               </button>
             </div>
 
-            {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
               {messages.length === 0 && (
                 <div className="text-center text-muted-foreground text-xs mt-8 space-y-2">
@@ -112,6 +188,7 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
                   <p>e.g. "Expand the discussion section" or "Add more citations to the introduction"</p>
                 </div>
               )}
+
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -131,6 +208,7 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
                   </div>
                 </div>
               ))}
+
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
@@ -140,7 +218,6 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
               )}
             </div>
 
-            {/* Input */}
             <div className="px-3 py-3 border-t border-border">
               <div className="flex items-center gap-2">
                 <input

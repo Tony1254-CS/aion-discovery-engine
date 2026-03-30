@@ -234,8 +234,8 @@ Write as a serious academic paper, not a summary. Each section should be substan
     },
     refine: {
       model: GOOGLE_LONGFORM, maxTokens: 8192,
-      systemPrompt: "Update the provided paper based on the user request. Return the complete paper as valid JSON with all required keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references. Maintain or increase the length of each section. Keep all 15+ references and add more if relevant.",
-      userPrompt: `User request: "${query}"\nCurrent paper: ${JSON.stringify(context?.paper)}`,
+      systemPrompt: "You are revising an academic paper based on user instructions. Return valid JSON with keys: title, abstract, introduction, literatureReview, methods, results, discussion, conclusion, references (array of {text}), updateNotes (string). Do NOT return a generic status message. Apply the user's request concretely and explain in updateNotes exactly what changed. If the request is ambiguous, make the most reasonable scholarly edit and state your assumption in updateNotes. Keep references real, consistent, and formatted.",
+      userPrompt: `User request: "${query}"\n\nRecent chat context: ${JSON.stringify(context?.chatHistory || [])}\n\nCurrent paper: ${JSON.stringify(context?.paper)}`,
     },
     "peer-review": {
       model: GOOGLE_FAST, maxTokens: 2000,
