@@ -7,8 +7,8 @@ const corsHeaders = {
 
 const GOOGLE_AI_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions";
-const HF_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+const HF_MODEL = "Qwen/Qwen3-235B-A22B";
 
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
   try {
