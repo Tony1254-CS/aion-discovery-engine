@@ -16,9 +16,11 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_FAST = "llama-3.1-8b-instant";
 const GROQ_BALANCED = "llama-3.3-70b-versatile";
 
-// Hugging Face backup (FREE tier)
-const HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions";
-const HF_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+// Hugging Face — PRIMARY provider
+const HF_API_URL = "https://api-inference.huggingface.co/models/";
+const HF_MODEL_FAST = "mistralai/Mistral-7B-Instruct-v0.3";
+const HF_MODEL_BALANCED = "meta-llama/Meta-Llama-3-8B-Instruct";
+const HF_MODEL_LONGFORM = "meta-llama/Meta-Llama-3-8B-Instruct";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const LOVABLE_FAST = "google/gemini-3-flash-preview";
 const LOVABLE_LONGFORM = "google/gemini-2.5-pro";
@@ -109,12 +111,8 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   return fallback;
 };
 
-const getProviderOrder = (stage: Stage): Provider[] => {
-  if (LONGFORM_PRIORITY_STAGES.has(stage)) {
-    return ["lovable", "google", "groq", "huggingface"];
-  }
-
-  return ["google", "lovable", "groq", "huggingface"];
+const getProviderOrder = (_stage: Stage): Provider[] => {
+  return ["huggingface", "google", "lovable", "groq"];
 };
 
 const buildFallbackPaper = (query: string, context: any) => {
@@ -375,13 +373,16 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
   }
 }
 
-// Call Hugging Face as 3rd backup — FREE
+// Call Hugging Face Inference API — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
+  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : (maxTokens >= 3000 ? HF_MODEL_BALANCED : HF_MODEL_FAST);
+  const url = `${HF_API_URL}${model}/v1/chat/completions`;
+
   try {
-    const response = await fetch(HF_API_URL, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: HF_MODEL, messages, max_tokens: Math.min(maxTokens, 4000), temperature: 0.3 }),
+      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3, stream: false }),
     });
     if (!response.ok) {
       const t = await response.text();
@@ -482,7 +483,7 @@ serve(async (req) => {
 
       if (provider === "huggingface" && !aiResult && HUGGINGFACE_API_KEY) {
         aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
-        if (aiResult) usedModel = "hf/deepseek-v3";
+        if (aiResult) usedModel = `hf/${maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST}`;
       }
     }
 
