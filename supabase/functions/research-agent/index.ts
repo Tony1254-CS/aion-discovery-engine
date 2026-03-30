@@ -374,16 +374,19 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
 
 // Call Hugging Face Router — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
-  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
-  console.log(`HuggingFace calling model: ${model}, maxTokens: ${maxTokens}`);
+  const isLongform = maxTokens >= 6000;
+  const model = isLongform ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
+  const effectiveMaxTokens = isLongform ? Math.min(maxTokens, 8192) : Math.min(maxTokens, 4096);
+  const timeoutMs = isLongform ? 90000 : 45000; // 90s for longform, 45s for fast
+  console.log(`HuggingFace calling model: ${model}, maxTokens: ${effectiveMaxTokens}, timeout: ${timeoutMs}ms`);
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000); // 45s timeout
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 4096), temperature: 0.3 }),
+      body: JSON.stringify({ model, messages, max_tokens: effectiveMaxTokens, temperature: 0.3 }),
       signal: controller.signal,
     });
     clearTimeout(timeout);
