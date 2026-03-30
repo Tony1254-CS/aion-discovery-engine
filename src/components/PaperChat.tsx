@@ -108,8 +108,15 @@ export default function PaperChat({ paper, query, onPaperUpdate }: PaperChatProp
       });
 
       if (error) throw error;
-      if (data?.rateLimited) {
-        throw new Error("The AI is temporarily unavailable. Please try again in a moment.");
+      const providerError = typeof data?.error === "string" ? data.error : "";
+      if (data?.rateLimited && providerError) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `⚠️ ${providerError}\n\nI can still apply a local paper refinement if available. Please retry your request in a minute for full AI output.`,
+          },
+        ]);
       }
 
       const result = data?.result;
