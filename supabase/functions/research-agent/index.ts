@@ -180,8 +180,12 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   return fallback;
 };
 
-const getProviderOrder = (_stage: Stage): Provider[] => {
-  return ["huggingface", "google", "lovable", "groq"];
+const getProviderOrder = (stage: Stage): Provider[] => {
+  // Use Lovable AI (Gemini Pro) first for long-form stages for higher quality
+  if (LONGFORM_PRIORITY_STAGES.has(stage)) {
+    return ["lovable", "huggingface", "google", "groq"];
+  }
+  return ["huggingface", "lovable", "google", "groq"];
 };
 
 const buildFallbackPaper = (query: string, context: any) => {
