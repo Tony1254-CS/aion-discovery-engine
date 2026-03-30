@@ -111,12 +111,8 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   return fallback;
 };
 
-const getProviderOrder = (stage: Stage): Provider[] => {
-  if (LONGFORM_PRIORITY_STAGES.has(stage)) {
-    return ["lovable", "google", "groq", "huggingface"];
-  }
-
-  return ["google", "lovable", "groq", "huggingface"];
+const getProviderOrder = (_stage: Stage): Provider[] => {
+  return ["huggingface", "google", "lovable", "groq"];
 };
 
 const buildFallbackPaper = (query: string, context: any) => {
