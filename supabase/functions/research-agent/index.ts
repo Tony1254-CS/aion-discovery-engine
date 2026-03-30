@@ -16,11 +16,10 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_FAST = "llama-3.1-8b-instant";
 const GROQ_BALANCED = "llama-3.3-70b-versatile";
 
-// Hugging Face — PRIMARY provider
-const HF_API_URL = "https://api-inference.huggingface.co/models/";
-const HF_MODEL_FAST = "mistralai/Mistral-7B-Instruct-v0.3";
-const HF_MODEL_BALANCED = "meta-llama/Meta-Llama-3-8B-Instruct";
-const HF_MODEL_LONGFORM = "meta-llama/Meta-Llama-3-8B-Instruct";
+// Hugging Face — PRIMARY provider (unified router endpoint)
+const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+const HF_MODEL_FAST = "Qwen/Qwen2.5-72B-Instruct";
+const HF_MODEL_LONGFORM = "Qwen/Qwen2.5-72B-Instruct";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const LOVABLE_FAST = "google/gemini-3-flash-preview";
 const LOVABLE_LONGFORM = "google/gemini-2.5-pro";
