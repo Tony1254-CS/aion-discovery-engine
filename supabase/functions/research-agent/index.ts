@@ -372,16 +372,15 @@ async function callGroq(apiKey: string, model: string, messages: any[], maxToken
   }
 }
 
-// Call Hugging Face Inference API — PRIMARY
+// Call Hugging Face Router — PRIMARY
 async function callHuggingFace(apiKey: string, messages: any[], maxTokens: number): Promise<string | null> {
-  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : (maxTokens >= 3000 ? HF_MODEL_BALANCED : HF_MODEL_FAST);
-  const url = `${HF_API_URL}${model}/v1/chat/completions`;
+  const model = maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST;
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(HF_API_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3, stream: false }),
+      body: JSON.stringify({ model, messages, max_tokens: Math.min(maxTokens, 8000), temperature: 0.3 }),
     });
     if (!response.ok) {
       const t = await response.text();
