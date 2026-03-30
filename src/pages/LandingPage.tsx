@@ -102,6 +102,13 @@ export default function LandingPage() {
           <div className="flex items-center gap-4">
             <LiteratureMonitor />
             <button
+              onClick={() => navigate("/about")}
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 px-3 py-1.5 rounded-lg hover:bg-secondary/60"
+            >
+              <Info className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">About</span>
+            </button>
+            <button
               onClick={() => navigate("/leaderboard")}
               className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 px-3 py-1.5 rounded-lg hover:bg-secondary/60"
             >
