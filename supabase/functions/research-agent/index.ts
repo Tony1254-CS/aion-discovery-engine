@@ -90,6 +90,14 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   }
 
   const parsed = parseJsonContent(aiResult);
+  
+  if (stage === "paper" || stage === "refine") {
+    console.log(`[${stage}] Parse result type: ${typeof parsed}, hasRaw: ${"raw" in (parsed || {})}, keys: ${parsed ? Object.keys(parsed).join(",") : "null"}`);
+    if (parsed && "raw" in parsed) {
+      console.log(`[${stage}] Raw content preview: ${(parsed.raw || "").slice(0, 300)}`);
+    }
+  }
+
   if (parsed && typeof parsed === "object" && !("raw" in parsed)) {
     if (stage === "paper" || stage === "refine") {
       const fallbackPaper = buildFallbackPaper(query, context);
