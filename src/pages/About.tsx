@@ -163,8 +163,8 @@ export default function About() {
             {safetyItems.map((item, i) => (
               <motion.div key={i} variants={fadeUp} custom={8 + i} initial="hidden" animate="visible"
                 className="bg-card rounded-xl border border-border p-5 space-y-3 hover:border-primary/30 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-accent-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
