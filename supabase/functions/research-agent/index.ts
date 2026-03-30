@@ -483,7 +483,7 @@ serve(async (req) => {
 
       if (provider === "huggingface" && !aiResult && HUGGINGFACE_API_KEY) {
         aiResult = await callHuggingFace(HUGGINGFACE_API_KEY, messages, maxTokens);
-        if (aiResult) usedModel = "hf/deepseek-v3";
+        if (aiResult) usedModel = `hf/${maxTokens >= 6000 ? HF_MODEL_LONGFORM : HF_MODEL_FAST}`;
       }
     }
 
