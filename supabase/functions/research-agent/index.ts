@@ -33,7 +33,7 @@ const JSON_STAGES = new Set<Stage>([
   "literature", "gaps", "hypotheses", "experiment", "paper", "refine",
   "peer-review", "competing-hypotheses", "research-gaps", "research-proposal",
 ]);
-const LONGFORM_PRIORITY_STAGES = new Set<Stage>(["paper", "refine", "debate"]);
+const LONGFORM_PRIORITY_STAGES = new Set<Stage>(["paper", "debate"]);
 
 type Provider = "lovable" | "google" | "groq" | "huggingface";
 
