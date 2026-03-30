@@ -144,13 +144,6 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
   }
 
   const parsed = parseJsonContent(aiResult);
-  
-  if (stage === "paper" || stage === "refine") {
-    console.log(`[${stage}] Parse result type: ${typeof parsed}, hasRaw: ${"raw" in (parsed || {})}, keys: ${parsed ? Object.keys(parsed).join(",") : "null"}`);
-    if (parsed && "raw" in parsed) {
-      console.log(`[${stage}] Raw content preview: ${(parsed.raw || "").slice(0, 300)}`);
-    }
-  }
 
   if (parsed && typeof parsed === "object" && !("raw" in parsed)) {
     if (stage === "paper" || stage === "refine") {
@@ -161,8 +154,23 @@ const finalizeStageResult = (stage: Stage, query: string, context: any, aiResult
         references: normalizeReferences((parsed as any).references, fallbackPaper.references),
       };
     }
-
     return parsed;
+  }
+
+  // JSON parsing failed — try markdown extraction for paper/refine stages
+  if ((stage === "paper" || stage === "refine") && parsed && "raw" in parsed) {
+    console.log(`[${stage}] JSON parse failed, attempting markdown extraction...`);
+    const mdPaper = parseMarkdownPaper(parsed.raw as string);
+    if (mdPaper) {
+      console.log(`[${stage}] Markdown extraction succeeded, keys: ${Object.keys(mdPaper).join(",")}`);
+      const fallbackPaper = buildFallbackPaper(query, context);
+      return {
+        ...fallbackPaper,
+        ...mdPaper,
+        references: normalizeReferences(mdPaper.references, fallbackPaper.references),
+      };
+    }
+    console.log(`[${stage}] Markdown extraction also failed`);
   }
 
   if (stage === "paper") {
